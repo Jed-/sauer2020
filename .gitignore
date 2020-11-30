@@ -1,0 +1,7 @@
+sauer_client
+sauer_server
+xcode/
+vcpp/
+*.o
+*.gch
+*.a
