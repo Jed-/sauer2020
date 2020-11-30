@@ -1051,6 +1051,9 @@ namespace game
         pophudmatrix();
     }
 
+	VARP(showpointed, 0, 0, 1);
+	fpsent *lastpointed = NULL;
+
     void gameplayhud(int w, int h)
     {
         pushhudmatrix();
@@ -1093,6 +1096,30 @@ namespace game
             if(gameclock) drawgameclock(w, h);
             if(hudscore) drawhudscore(w, h);
         }
+
+		fpsent *p = pointatplayer();
+		if(p && player1->state != CS_DEAD && p->state != CS_EDITING) {
+			lastpointed = p;
+		}
+		if(lastpointed && (intermission || lastpointed != getclient(lastpointed->clientnum))) {
+			lastpointed = NULL;
+		}
+		if(lastpointed && player1->state != CS_SPECTATOR && showpointed) {
+			pushhudmatrix();
+	        hudmatrix.scale(h/1800.0f, h/1800.0f, 1);
+	        flushhudmatrix();
+
+			int rpw, rph, pw, ph;
+			string pointedname;
+			formatstring(pointedname, "%s", colorname(lastpointed));
+			text_bounds(pointedname, rpw, rph);
+			text_bounds("  ", pw, ph);
+			draw_textf("\f%d%s", w*1800/h - rpw - pw, 1650 - rph - 16,
+				lastpointed->state == CS_DEAD ? 4 : m_teammode ? isteam(player1->team, lastpointed->team) ? 1 : 3 : 0,
+				colorname(lastpointed)
+			);
+			pophudmatrix();
+		}
     }
 
     int clipconsole(int w, int h)
