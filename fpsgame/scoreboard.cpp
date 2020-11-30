@@ -240,6 +240,14 @@ namespace game
                 g.pushlist(); // horizontal
             }
 
+			if(m_collect || m_ctf || m_hold || m_protect) {
+				g.pushlist();
+				g.strut(4);
+				g.text("", fgcolor);
+				loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->flags))
+				g.poplist();
+			}
+
             if(!cmode || !cmode->hidefrags() || !hidefrags)
             {
                 g.pushlist();
