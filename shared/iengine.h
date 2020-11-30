@@ -74,9 +74,9 @@ struct selinfo
         extern int worldsize;
         if(grid <= 0 || grid >= worldsize) return false;
         if(o.x >= worldsize || o.y >= worldsize || o.z >= worldsize) return false;
-        if(o.x < 0) { s.x -= (grid - 1 - o.x)/grid; o.x = 0; } 
-        if(o.y < 0) { s.y -= (grid - 1 - o.y)/grid; o.y = 0; } 
-        if(o.z < 0) { s.z -= (grid - 1 - o.z)/grid; o.z = 0; } 
+        if(o.x < 0) { s.x -= (grid - 1 - o.x)/grid; o.x = 0; }
+        if(o.y < 0) { s.y -= (grid - 1 - o.y)/grid; o.y = 0; }
+        if(o.z < 0) { s.z -= (grid - 1 - o.z)/grid; o.z = 0; }
         s.x = clamp(s.x, 0, (worldsize - o.x)/grid);
         s.y = clamp(s.y, 0, (worldsize - o.y)/grid);
         s.z = clamp(s.z, 0, (worldsize - o.z)/grid);
@@ -476,6 +476,9 @@ extern void sendserverinforeply(ucharbuf &p);
 extern bool requestmaster(const char *req);
 extern bool requestmasterf(const char *fmt, ...) PRINTFARGS(1, 2);
 extern bool isdedicatedserver();
+extern int numservers();
+extern char *gethostname(int n);
+extern int getport(int n);
 
 // client
 extern void sendclientpacket(ENetPacket *packet, int chan);
@@ -487,6 +490,7 @@ extern bool multiplayer(bool msg = true);
 extern void neterr(const char *s, bool disc = true);
 extern void gets2c();
 extern void notifywelcome();
+extern bool resolverwait(const char *name, ENetAddress *address);
 
 // crypto
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
@@ -580,4 +584,3 @@ extern bool g3d_movecursor(int dx, int dy);
 extern void g3d_cursorpos(float &x, float &y);
 extern void g3d_resetcursor();
 extern void g3d_limitscale(float scale);
-

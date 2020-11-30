@@ -352,6 +352,118 @@ namespace game
     }
     ICOMMAND(isai, "ii", (int *cn, int *type), intret(isai(*cn, *type) ? 1 : 0));
 
+	#include "extserver.h"
+    vector<extclient *> extclients;
+    extclient *getextclient(int clientnum) {
+    	loopv(extclients) {
+    		if(extclients[i] && extclients[i]->clientnum==clientnum) return extclients[i];
+    	}
+    	return NULL;
+    }
+    void resetextinfo() {
+    	extclients.shrink(0);
+    }
+
+	ENetSocket extinfosock = ENET_SOCKET_NULL;
+	ENetSocket getextsock() {
+		if(extinfosock != ENET_SOCKET_NULL) return extinfosock;
+		extinfosock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
+		enet_socket_set_option(extinfosock, ENET_SOCKOPT_NONBLOCK, 1);
+		enet_socket_set_option(extinfosock, ENET_SOCKOPT_BROADCAST, 1);
+		return extinfosock;
+	}
+	int lastextinforeq = 0;
+	void requestextinfo(int cn)
+	{
+		const ENetAddress *paddress = connectedpeer();
+		if(!paddress) return;
+		ENetAddress address = *paddress;
+		ENetSocket extsock = getextsock();
+		if(extsock == ENET_SOCKET_NULL) return;
+		address.port = server::serverinfoport(address.port);
+		ENetBuffer buf;
+		uchar send[MAXTRANS];
+		ucharbuf p(send, MAXTRANS);
+		putint(p, 0);
+		putint(p, EXT_PLAYERSTATS);
+		putint(p, cn);
+		buf.data = send;
+		buf.dataLength = p.length();
+		enet_socket_send(extsock, &address, &buf, 1);
+		lastextinforeq = totalmillis;
+	}
+	void processextinfo()
+	{
+		const ENetAddress *paddress = connectedpeer();
+		if(!paddress) return;
+		ENetAddress connectedaddress = *paddress;
+		ENetSocket extsock = getextsock();
+		if(extsock == ENET_SOCKET_NULL) return;
+		enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+		int s = 0;
+		ENetBuffer buf;
+		ENetAddress address;
+		uchar data[MAXTRANS];
+		buf.data = data;
+		buf.dataLength = sizeof(data);
+		while((s = enet_socket_wait(extsock, &events, 0)) >= 0 && events)
+		{
+			int len = enet_socket_receive(extsock, &address, &buf, 1);
+			if(len <= 0 || connectedaddress.host != address.host ||
+			server::serverinfoport(connectedaddress.port) != address.port) continue;
+			ucharbuf p(data, len);
+			extclient *extpdata = NULL;
+			if(getint(p) == 0 && getint(p) == EXT_PLAYERSTATS) {
+				char strdata[MAXTRANS];
+				getint(p);
+				if(getint(p) == EXT_ACK && getint(p) == EXT_VERSION) {
+					int err = getint(p);
+					if(!err) {
+						if(getint(p) == EXT_PLAYERSTATS_RESP_STATS) {
+							if(!extpdata) extpdata = new extclient();
+							extpdata->clientnum = getint(p);
+							loopv(extclients) {
+								if(extclients[i]->clientnum == extpdata->clientnum) extclients.remove(i);
+							}
+							extpdata->ping = getint(p);
+							getstring(strdata, p);
+							strncpy(extpdata->name, strdata, MAXNAMELEN+1);
+							getstring(strdata, p);
+							strncpy(extpdata->team, strdata, MAXTEAMLEN+1);
+							extpdata->frags = getint(p);
+							extpdata->flags = getint(p);
+							extpdata->deaths = getint(p);
+							extpdata->teamkills = getint(p);
+							extpdata->accuracy = getint(p);
+							extpdata->health = getint(p);
+							extpdata->armour = getint(p);
+							extpdata->gunselect = getint(p);
+							extpdata->privilege = getint(p);
+							extpdata->state = getint(p);
+							p.get((uchar*)&extpdata->ip, 3);
+							extclients.add(extpdata);
+						}
+					}
+				}
+			}
+		}
+	}
+	VARP(extinfomillis, 500, 2000, 10000);
+	void updateextinfo()
+	{
+		const ENetAddress *paddress = connectedpeer();
+		if(!paddress) return;
+		processextinfo();
+		if((totalmillis-lastextinforeq) > extinfomillis) {
+			loopv(players)
+			{
+				fpsent *d = players[i];
+				if(!d) continue;
+				requestextinfo(d->clientnum);
+			}
+		}
+	}
+
     int parseplayer(const char *arg)
     {
         char *end;
@@ -895,6 +1007,7 @@ namespace game
     {
         remote = _remote;
         if(editmode) toggleedit();
+		resetextinfo();
     }
 
     void gamedisconnect(bool cleanup)

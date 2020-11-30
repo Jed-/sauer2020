@@ -475,7 +475,7 @@ fpsgame/ai.o: shared/iengine.h shared/igame.h fpsgame/ai.h
 fpsgame/client.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/client.o: shared/ents.h shared/command.h shared/glexts.h
 fpsgame/client.o: shared/glemu.h shared/iengine.h shared/igame.h fpsgame/ai.h
-fpsgame/client.o: fpsgame/capture.h fpsgame/ctf.h fpsgame/collect.h
+fpsgame/client.o: fpsgame/capture.h fpsgame/ctf.h fpsgame/collect.h fpsgame/extserver.h
 fpsgame/entities.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/entities.o: shared/ents.h shared/command.h shared/glexts.h
 fpsgame/entities.o: shared/glemu.h shared/iengine.h shared/igame.h

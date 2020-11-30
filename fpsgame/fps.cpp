@@ -277,9 +277,12 @@ namespace game
                 }
                 else if(cmode) cmode->checkitems(player1);
             }
-			checkflag();
+			updateextinfo();
         }
+		checkflag();
         if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
+		checkinfoqueue();
+		processservinfo();
     }
 
     float proximityscore(float x, float lower, float upper)
@@ -610,6 +613,8 @@ namespace game
         clearragdolls();
 
         clearteaminfo();
+
+		resetextinfo();
 
         // reset perma-state
         loopv(players)

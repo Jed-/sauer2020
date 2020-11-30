@@ -634,6 +634,31 @@ struct teamscore
     }
 };
 
+struct extclient {
+	int clientnum, ping;
+	string name, team;
+	int frags, flags, deaths, teamkills, accuracy, health, armour, gunselect, privilege, state;
+	uint ip;
+	extclient()
+	{
+		clientnum = -1;
+		ping = 0;
+		frags = 0;
+		flags = 0;
+		deaths = 0;
+		teamkills = 0;
+		accuracy = 0;
+		health = 0;
+		armour = 0;
+		gunselect = 0;
+		privilege = 0;
+		state = 0;
+		ip = 0;
+		copystring(name, "unnamed", MAXNAMELEN);
+		copystring(team, " ", MAXTEAMLEN);
+	}
+};
+
 static inline uint hthash(const teamscore &t) { return hthash(t.team); }
 static inline bool htcmp(const char *key, const teamscore &t) { return htcmp(key, t.team); }
 
@@ -751,6 +776,8 @@ namespace game
     extern bool connected, remote, demoplayback;
     extern string servinfo;
     extern vector<uchar> messages;
+	extern void processservinfo();
+    extern void checkinfoqueue();
 
     extern int parseplayer(const char *arg);
     extern void ignore(int cn);
@@ -767,6 +794,13 @@ namespace game
     extern void c2sinfo(bool force = false);
     extern void sendposition(fpsent *d, bool reliable = false);
 	extern void checkflag();
+
+	// extinfo
+	extern void updateextinfo();
+    extern extclient *getextclient(int clientnum);
+    extern void resetextinfo();
+    extern vector<extclient *> extclients;
+	extern bool _extinfo;
 
     // monster
     struct monster;
