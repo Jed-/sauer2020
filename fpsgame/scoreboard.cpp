@@ -14,6 +14,7 @@ namespace game
     VARP(showconnecting, 0, 0, 1);
     VARP(hidefrags, 0, 1, 1);
     VARP(showdeaths, 0, 0, 1);
+	VARP(showaccuracy, 0, 1, 2);
 
     static hashset<teaminfo> teaminfos;
 
@@ -318,6 +319,19 @@ namespace game
                 g.textf("%s ", statuscolor(o, 0xFFFFDD), NULL, colorname(o, NULL, "", "", NULL, true));
             });
             g.poplist();
+
+			if(showaccuracy) {
+				g.space(1);
+	            g.pushlist();
+	            g.text("acc", fgcolor);
+	            g.strut(intermission ? 6 : 4);
+	            loopscoregroup(o,
+	            {
+	            	int acc = (getextclient(o->clientnum)) ? (getextclient(o->clientnum))->accuracy : (o->totaldamage*100)/max(o->totalshots, 1);
+	            	g.textf("%d%%", showaccuracy >= 2 ? 0xFFFF00 : 0xFFFFDD, NULL, acc);
+	            })
+	            g.poplist();
+			}
 
             if(multiplayer(false) || demoplayback)
             {
