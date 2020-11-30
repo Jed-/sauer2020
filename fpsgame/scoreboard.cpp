@@ -266,6 +266,50 @@ namespace game
                 g.poplist();
             }
 
+			if(m_collect) {
+				g.pushlist();
+				g.text("", 0x000000);
+				loopscoregroup(o, {
+					if(o->tokens) {
+						g.textf("%d", 0xFFFFDD, NULL, o->tokens);
+					} else {
+						g.text("", 0x000000);
+					}
+				});
+				g.poplist();
+
+				g.pushlist();
+				g.text("", 0x000000);
+				loopscoregroup(o, {
+					if(o->tokens) {
+						g.text("", 0x000000, isteam(o->team, player1->team) ? "../hud/blip_red_skull.png" : "../hud/blip_blue_skull.png");
+					} else {
+						g.text("", 0x000000);
+					}
+				});
+				g.poplist();
+			} else if(m_ctf || m_protect || m_hold) {
+				g.pushlist();
+				g.text("", 0x000000);
+				loopscoregroup(o, {
+					char *icon = NULL;
+					if(m_ctf && !m_protect && !m_hold) {
+						icon = isteam(o->team, player1->team) ? (char *)"../hud/blip_red_flag.png" : (char *)"../hud/blip_blue_flag.png";
+					} else if(m_protect) {
+						icon = isteam(o->team, player1->team) ? (char *)"..hud/blip_blue_flag.png" : (char *)"../hud/blip_red_flag.png";
+					} else { // m_hold
+						icon = (char *)"../hud/blip_neutral_flag.png";
+					}
+
+					if(icon && o->hasflag) {
+						g.text("", 0x000000, icon);
+					} else {
+						g.text("", 0x000000);
+					}
+				})
+				g.poplist();
+			}
+
             g.pushlist();
             g.text("name", fgcolor);
             g.strut(12);

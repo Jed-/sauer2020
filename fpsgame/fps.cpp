@@ -277,6 +277,7 @@ namespace game
                 }
                 else if(cmode) cmode->checkitems(player1);
             }
+			checkflag();
         }
         if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
     }
@@ -621,6 +622,7 @@ namespace game
             d->maxhealth = 100;
             d->lifesequence = -1;
             d->respawned = d->suicided = -2;
+			d->hasflag = false;
         }
 
         setclientmode();

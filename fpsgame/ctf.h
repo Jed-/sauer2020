@@ -352,8 +352,8 @@ struct ctfclientmode : clientmode
         loopv(flags) if(flags[i].dropper == ci->clientnum) { flags[i].dropper = -1; flags[i].dropcount = 0; }
     }
 
-    bool canspawn(clientinfo *ci, bool connecting) 
-    { 
+    bool canspawn(clientinfo *ci, bool connecting)
+    {
         return m_efficiency || !m_protect ? connecting || !ci->state.lastdeath || gamemillis+curtime-ci->state.lastdeath >= RESPAWNSECS*1000 : true;
     }
 
@@ -895,6 +895,17 @@ struct ctfclientmode : clientmode
         teamsound(d, S_FLAGRETURN);
     }
 
+	void checkflag() {
+		loopv(players) {
+			players[i]->hasflag = false;
+		}
+		loopv(flags) {
+			if(flags[i].owner) {
+				flags[i].owner->hasflag = true;
+			}
+		}
+	}
+	
     void spawnflag(flag &f)
     {
         if(!holdspawns.inrange(f.spawnindex)) return;
@@ -1350,4 +1361,3 @@ case N_INVISFLAG:
 }
 
 #endif
-
