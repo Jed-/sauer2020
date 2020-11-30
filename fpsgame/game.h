@@ -61,8 +61,8 @@ enum
 struct fpsentity : extentity
 {
     int triggerstate, lasttrigger;
-    
-    fpsentity() : triggerstate(TRIGGER_RESET), lasttrigger(0) {} 
+
+    fpsentity() : triggerstate(TRIGGER_RESET), lasttrigger(0) {}
 };
 
 enum { GUN_FIST = 0, GUN_SG, GUN_CG, GUN_RL, GUN_RIFLE, GUN_GL, GUN_PISTOL, GUN_FIREBALL, GUN_ICEBALL, GUN_SLIMEBALL, GUN_BITE, GUN_BARREL, NUMGUNS };
@@ -208,7 +208,7 @@ enum
     S_CHAINSAW_IDLE,
 
     S_HIT,
-    
+
     S_FLAGFAIL
 };
 
@@ -501,7 +501,7 @@ struct fpsstate
         }
         else if(m_sp)
         {
-            if(m_dmsp) 
+            if(m_dmsp)
             {
                 armourtype = A_BLUE;
                 armour = 25;
@@ -720,7 +720,7 @@ namespace game
     extern bool clientoption(const char *arg);
     extern fpsent *getclient(int cn);
     extern fpsent *newclient(int cn);
-    extern const char *colorname(fpsent *d, const char *name = NULL, const char *prefix = "", const char *suffix = "", const char *alt = NULL);
+    extern const char *colorname(fpsent *d, const char *name = NULL, const char *prefix = "", const char *suffix = "", const char *alt = NULL, bool scoreboard = false);
     extern const char *teamcolorname(fpsent *d, const char *alt = "you");
     extern const char *teamcolor(const char *name, bool sameteam, const char *alt = NULL);
     extern const char *teamcolor(const char *name, const char *team, const char *alt = NULL);
@@ -864,4 +864,3 @@ namespace server
 }
 
 #endif
-

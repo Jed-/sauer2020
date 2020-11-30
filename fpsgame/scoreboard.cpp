@@ -5,7 +5,7 @@ namespace game
 {
     VARP(scoreboard2d, 0, 1, 1);
     VARP(showservinfo, 0, 1, 1);
-    VARP(showclientnum, 0, 0, 1);
+    VARP(showclientnum, 0, 0, 2);
     VARP(showpj, 0, 0, 1);
     VARP(showping, 0, 1, 2);
     VARP(showspectators, 0, 1, 1);
@@ -263,7 +263,7 @@ namespace game
             g.strut(12);
             loopscoregroup(o,
             {
-                g.textf("%s ", statuscolor(o, 0xFFFFDD), NULL, colorname(o));
+                g.textf("%s ", statuscolor(o, 0xFFFFDD), NULL, colorname(o, NULL, "", "", NULL, true));
             });
             g.poplist();
 
@@ -369,7 +369,7 @@ namespace game
                         g.pushlist();
                         g.background(0x808080, 3);
                     }
-                    g.text(colorname(o), statuscolor(o, 0xFFFFDD), "spectator");
+                    g.text(colorname(o, NULL, "", "", NULL, true), statuscolor(o, 0xFFFFDD), "spectator");
                     if(o==player1 && highlightscore) g.poplist();
                 }
                 g.poplist();
@@ -415,7 +415,7 @@ namespace game
                         g.pushlist();
                         g.background(0x808080);
                     }
-                    g.text(colorname(o), statuscolor(o, 0xFFFFDD));
+                    g.text(colorname(o, NULL, "", "", NULL, true), statuscolor(o, 0xFFFFDD));
                     if(o==player1 && highlightscore) g.poplist();
                     if(i+1<spectators.length() && (i+1)%3) g.space(1);
                     else g.poplist();
@@ -551,4 +551,3 @@ namespace game
         pophudmatrix();
     }
 }
-
