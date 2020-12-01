@@ -750,6 +750,8 @@ namespace game
     static string cname[3];
     static int cidx = 0;
 
+	VARP(showbotskill, 0, 0, 1);
+
     const char *colorname(fpsent *d, const char *name, const char *prefix, const char *suffix, const char *alt, bool scoreboard)
     {
 		extern int showclientnum;
@@ -758,7 +760,18 @@ namespace game
         if(dup || prefix[0] || suffix[0])
         {
             cidx = (cidx+1)%3;
-            if(dup) formatstring(cname[cidx], d->aitype == AI_NONE ? "%s%s \fs\f5(%d)\fr%s" : "%s%s \fs\f5[%d]\fr%s", prefix, name, d->clientnum, suffix);
+//            if(dup) formatstring(cname[cidx], d->aitype == AI_NONE ? "%s%s \fs\f5(%d)\fr%s" : "%s%s \fs\f5[%d]\fr%s", prefix, name, d->clientnum, suffix);
+			if(dup) {
+				if(d->aitype == AI_NONE) {
+					formatstring(cname[cidx], "%s%s \fs\f5(%d)\fr%s", prefix, name, d->clientnum, suffix);
+				} else {
+					if(showbotskill && d->skill) {
+						formatstring(cname[cidx], "%s%s %d \f5[%d]\fr%s", prefix, name, d->skill, d->clientnum, suffix);
+					} else {
+						formatstring(cname[cidx], "%s%s \f5[%d]\fr%s", prefix, name, d->clientnum, suffix);
+					}
+				}
+			}
             else formatstring(cname[cidx], "%s%s%s", prefix, name, suffix);
             return cname[cidx];
         }
