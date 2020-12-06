@@ -1093,7 +1093,7 @@ namespace game
             if(f)
             {
                 int color = statuscolor(f, 0xFFFFFF);
-                draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                draw_text(teamcolorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
             }
         }
 
