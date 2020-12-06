@@ -26,8 +26,8 @@ struct extserver {
 	vector<extclient *> extclients;
 	vector<tscore *> teams;
 	extserver() : ip(0), port(0), clients(0), maxclients(0), gamemode(0), gametime(0), mastermode(0), gamespeed(0), gamepaused(false), protocol(0), uptime(0) {
-		formatstring(name, "");
-		formatstring(map, "");
+		formatstring(name, "%s", "");
+		formatstring(map, "%s", "");
 	}
 };
 vector<extserver *> extservers;
@@ -402,7 +402,6 @@ void processservinfo()
 		}
 	}
 }
-// COMMAND(processservinfo, "");
 extserver *getextserv(uint ip, int port) {
 	loopv(extservers) {
 		extserver *es = extservers[i];
@@ -433,13 +432,6 @@ char *extservname(int i) {
 	return (char*)"";
 }
 ICOMMAND(extservname, "i", (int *i), result(extservname(*i)));
-char *lowerstring(char *arg) {
-	string s;
-	copystring(s, arg, sizeof(s));
-	for (int i=0; s[i]; i++) s[i] = tolower(s[i]);
-	return newstring(s);
-}
-ICOMMAND(lowerstring, "s", (char *arg), result(lowerstring(arg)));
 char *extservip(int i) {
 	if(extservers.inrange(i) && extservers[i]) {
 		defformatstring(ip, "%d.%d.%d.%d", extservers[i]->ip%256, (extservers[i]->ip/256)%256, (extservers[i]->ip/256/256)%256, extservers[i]->ip/256/256/256);
