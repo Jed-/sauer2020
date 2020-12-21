@@ -455,12 +455,7 @@ namespace game
 		if(!paddress) return;
 		processextinfo();
 		if((totalmillis-lastextinforeq) > extinfomillis) {
-			loopv(players)
-			{
-				fpsent *d = players[i];
-				if(!d) continue;
-				requestextinfo();
-			}
+			requestextinfo();
 		}
 	}
 
