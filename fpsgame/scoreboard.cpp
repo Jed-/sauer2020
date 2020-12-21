@@ -327,8 +327,9 @@ namespace game
 	            g.strut(intermission ? 6 : 4);
 	            loopscoregroup(o,
 	            {
-	            	int acc = (getextclient(o->clientnum)) ? (getextclient(o->clientnum))->accuracy : (o->totaldamage*100)/max(o->totalshots, 1);
-	            	g.textf("%d%%", showaccuracy >= 2 ? 0xFFFF00 : 0xFFFFDD, NULL, acc);
+					extclient *ec = getextclient(o->clientnum);
+	            	int acc = ec ? (ec)->accuracy : (o->totaldamage*100)/max(o->totalshots, 1);
+	            	g.textf("%d%%", showaccuracy >= 2 ? (ec ? 0xFFFF00 : 0xFF7F00) : 0xFFFFDD, NULL, acc);
 	            })
 	            g.poplist();
 			}
