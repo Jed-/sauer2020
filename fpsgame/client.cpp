@@ -373,7 +373,7 @@ namespace game
 		return extinfosock;
 	}
 	int lastextinforeq = 0;
-	void requestextinfo(int cn)
+	void requestextinfo()
 	{
 		const ENetAddress *paddress = connectedpeer();
 		if(!paddress) return;
@@ -386,7 +386,7 @@ namespace game
 		ucharbuf p(send, MAXTRANS);
 		putint(p, 0);
 		putint(p, EXT_PLAYERSTATS);
-		putint(p, cn);
+		putint(p, -1);
 		buf.data = send;
 		buf.dataLength = p.length();
 		enet_socket_send(extsock, &address, &buf, 1);
@@ -459,7 +459,7 @@ namespace game
 			{
 				fpsent *d = players[i];
 				if(!d) continue;
-				requestextinfo(d->clientnum);
+				requestextinfo();
 			}
 		}
 	}
