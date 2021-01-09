@@ -4,7 +4,7 @@ extern int outline;
 
 bool boxoutline = false;
 
-void boxs(int orient, vec o, const vec &s, float size) 
+void boxs(int orient, vec o, const vec &s, float size)
 {
     int d = dimension(orient), dc = dimcoord(orient);
     float f = boxoutline ? (dc>0 ? 0.2f : -0.2f) : 0;
@@ -291,7 +291,7 @@ void countselchild(cube *c, const ivec &cor, int size)
     {
         ivec o(i, cor, size);
         if(c[i].children) countselchild(c[i].children, o, size/2);
-        else 
+        else
         {
             selchildcount++;
             if(c[i].material != MAT_AIR && selchildmat != MAT_AIR)
@@ -351,6 +351,8 @@ extern float rayent(const vec &o, const vec &ray, float radius, int mode, int si
 
 VAR(gridlookup, 0, 0, 1);
 VAR(passthroughcube, 0, 1, 1);
+VAR(passthroughent, 0, 1, 1);
+VARF(passthrough, 0, 0, 1, { passthroughsel = passthrough; entcancel(); });
 
 void rendereditcursor()
 {
@@ -391,9 +393,9 @@ void rendereditcursor()
 
         wdist = rayent(player->o, camdir, 1e16f,
                        (editmode && showmat ? RAY_EDITMAT : 0)   // select cubes first
-                       | (!dragging && entediting ? RAY_ENTS : 0)
+                       | (!dragging && entediting && (!passthrough || !passthroughent) ? RAY_ENTS : 0)
                        | RAY_SKIPFIRST
-                       | (passthroughcube==1 ? RAY_PASS : 0), gridsize, entorient, ent);
+                       | (passthroughcube || passthrough ? RAY_PASS : 0), gridsize, entorient, ent);
 
         if((havesel || dragging) && !passthroughsel && !hmapedit)     // now try selecting the selection
             if(rayboxintersect(vec(sel.o), vec(sel.s).mul(sel.grid), player->o, camdir, sdist, orient))
@@ -486,7 +488,7 @@ void rendereditcursor()
             selchildcount = 0;
             selchildmat = -1;
             countselchild(worldroot, ivec(0, 0, 0), worldsize/2);
-            if(mag>=1 && selchildcount==1) 
+            if(mag>=1 && selchildcount==1)
             {
                 selchildmat = c->material;
                 if(mag>1) selchildcount = -mag;
@@ -979,7 +981,7 @@ static bool unpackblock(block3 *&b, B &buf)
 }
 
 struct vslotmap
-{   
+{
     int index;
     VSlot *vslot;
 
@@ -1360,7 +1362,7 @@ static void genprefabmesh(prefabmesh &r, cube &c, const ivec &co, int size)
     }
     else if(!isempty(c))
     {
-        int vis; 
+        int vis;
         loopi(6) if((vis = visibletris(c, i, co, size)))
         {
             ivec v[4];
@@ -2617,8 +2619,8 @@ void rotatecube(cube &c, int d)   // rotates cube clockwise. see pics in cvs for
 
 void mpflip(selinfo &sel, bool local)
 {
-    if(local) 
-    { 
+    if(local)
+    {
         game::edittrigger(sel, EDIT_FLIP);
         makeundo();
     }
@@ -2674,8 +2676,8 @@ COMMAND(flip, "");
 COMMAND(rotate, "i");
 
 enum { EDITMATF_EMPTY = 0x10000, EDITMATF_NOTEMPTY = 0x20000, EDITMATF_SOLID = 0x30000, EDITMATF_NOTSOLID = 0x40000 };
-static const struct { const char *name; int filter; } editmatfilters[] = 
-{ 
+static const struct { const char *name; int filter; } editmatfilters[] =
+{
     { "empty", EDITMATF_EMPTY },
     { "notempty", EDITMATF_NOTEMPTY },
     { "solid", EDITMATF_SOLID },
@@ -2742,8 +2744,8 @@ void editmat(char *name, char *filtername)
         if(filter < 0) filter = findmaterial(filtername);
         if(filter < 0)
         {
-            conoutf(CON_ERROR, "unknown material \"%s\"", filtername); 
-            return; 
+            conoutf(CON_ERROR, "unknown material \"%s\"", filtername);
+            return;
         }
     }
     int id = -1;
