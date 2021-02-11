@@ -8,6 +8,7 @@ namespace game
     FVARP(minimapalpha, 0, 1, 1);
 
 	VARP(antirename, 0, 0, 2);
+	VARP(antifakesay, 0, 0, 1);
 
     float calcradarscale()
     {
@@ -1445,6 +1446,12 @@ namespace game
                 if(d->state!=CS_DEAD && d->state!=CS_SPECTATOR)
                     particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
                 conoutf(CON_CHAT, "%s:\f0 %s", chatcolorname(d), text);
+				if(d == player1) {
+					conoutf("\f3[WARNING: FAKESAY]\f7 fakesay detected!");
+					if(antifakesay) {
+						toserver((char *)":: fakesay detected - please ignore the previous message.");
+					}
+				}
                 break;
             }
 
