@@ -12,7 +12,7 @@ namespace game
     VARP(showspectatorping, 0, 0, 1);
     VARP(highlightscore, 0, 1, 1);
     VARP(showconnecting, 0, 0, 1);
-    VARP(hidefrags, 0, 1, 1);
+    VARP(hidefrags, 0, 1, 2);
     VARP(showdeaths, 0, 0, 1);
 	VARP(showaccuracy, 0, 1, 2);
 
@@ -241,7 +241,7 @@ namespace game
                 g.pushlist(); // horizontal
             }
 
-			if(m_collect || m_ctf || m_hold || m_protect) {
+			if(m_collect || m_ctf) {
 				g.pushlist();
 				g.strut(4);
 				g.text("", fgcolor);
@@ -249,7 +249,7 @@ namespace game
 				g.poplist();
 			}
 
-            if(!cmode || !cmode->hidefrags() || !hidefrags)
+            if(!cmode || !cmode->hidefrags() || !hidefrags || (hidefrags == 2 && m_capture))
             {
                 g.pushlist();
                 g.strut(6);
@@ -289,12 +289,12 @@ namespace game
 					}
 				});
 				g.poplist();
-			} else if(m_ctf || m_protect || m_hold) {
+			} else if(m_ctf) {
 				g.pushlist();
 				g.text("", 0x000000);
 				loopscoregroup(o, {
 					char *icon = NULL;
-					if(m_ctf && !m_protect && !m_hold) {
+					if(m_ctf_only) {
 						icon = isteam(o->team, player1->team) ? (char *)"../hud/blip_red_flag.png" : (char *)"../hud/blip_blue_flag.png";
 					} else if(m_protect) {
 						icon = isteam(o->team, player1->team) ? (char *)"..hud/blip_blue_flag.png" : (char *)"../hud/blip_red_flag.png";
