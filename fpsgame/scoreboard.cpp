@@ -15,6 +15,7 @@ namespace game
     VARP(hidefrags, 0, 1, 2);
     VARP(showdeaths, 0, 0, 1);
 	VARP(showaccuracy, 0, 1, 2);
+	VARP(extinfoflags, 0, 0, 1);
 
     static hashset<teaminfo> teaminfos;
 
@@ -40,8 +41,12 @@ namespace game
         else if(b->state==CS_SPECTATOR) return true;
         if(m_ctf || m_collect)
         {
-            if(a->flags > b->flags) return true;
-            if(a->flags < b->flags) return false;
+			extclient *eca = extinfoflags ? getextclient(a->clientnum) : NULL;
+			extclient *ecb = extinfoflags ? getextclient(b->clientnum) : NULL;
+			const int af = eca ? eca->flags : a->flags;
+			const int bf = ecb ? ecb->flags : b->flags;
+            if(af > bf) return true;
+            if(af < bf) return false;
         }
         if(a->frags > b->frags) return true;
         if(a->frags < b->frags) return false;
@@ -245,7 +250,10 @@ namespace game
 				g.pushlist();
 				g.strut(4);
 				g.text("", fgcolor);
-				loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->flags))
+				loopscoregroup(o, {
+					extclient *ec = extinfoflags ? getextclient(o->clientnum) : NULL;
+					g.textf("%d", 0xFFFFDD, NULL, ec ? ec->flags : o->flags);
+				})
 				g.poplist();
 			}
 
