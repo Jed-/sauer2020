@@ -1450,7 +1450,7 @@ namespace game
                     particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
                 conoutf(CON_CHAT, "%s:\f0 %s", chatcolorname(d), text);
 				if(d == player1) {
-					conoutf("\f3[WARNING: FAKESAY]\f7 fakesay detected!");
+					conoutf("\f3:: fakesay detected!");
 					if(antifakesay) {
 						toserver((char *)":: fakesay detected - please ignore the previous message.");
 					}
@@ -1555,9 +1555,9 @@ namespace game
 				if(d == player1 && antirename) {
 					filtertext(text, text, false, MAXNAMELEN);
 					if(!text[0]) copystring(text, "unnamed");
-					conoutf("\f3[WARNING: RENAME]\f7 attempt to rename player to %s", colorname(d, text));
+					conoutf("\f3:: attempt to rename player to %s", colorname(d, text));
 					if(antirename < 2) {
-						conoutf("\f3[WARNING: RENAME]\f7 switching back to original name");
+						conoutf("\f3:: switching back to original name");
 						switchname(player1->name);
 					}
 					break;
