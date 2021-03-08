@@ -9,6 +9,7 @@ namespace game
 
 	VARP(antirename, 0, 0, 2);
 	VARP(antifakesay, 0, 0, 1);
+	VARP(detectspies, 0, 0, 1);
 
     float calcradarscale()
     {
@@ -1367,6 +1368,7 @@ namespace game
         static char text[MAXTRANS];
         int type;
         bool mapchanged = false, demopacket = false;
+		bool iswelcome = false;
 
         while(p.remaining()) switch(type = getint(p))
         {
@@ -1392,6 +1394,7 @@ namespace game
 
             case N_WELCOME:
             {
+				iswelcome = true;
                 connected = true;
                 notifywelcome();
                 break;
@@ -1526,7 +1529,18 @@ namespace game
                 }
                 else                    // new client
                 {
-                    conoutf("\f0join:\f7 %s", colorname(d, text));
+					int expected_cn = -1;
+					if(detectspies && !iswelcome) for(int i = 0; i < cn; i++) {
+						if(!getclient(i)) {
+							expected_cn = i;
+							break;
+						}
+					}
+					if(!iswelcome && expected_cn >= 0) {
+						conoutf("\f0join:\f7 %s\f8 :: possible spy on cn %d", colorname(d, text), expected_cn);
+					} else {
+						conoutf("\f0join:\f7 %s", colorname(d, text));
+					}
                     if(needclipboard >= 0) needclipboard++;
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
@@ -2094,6 +2108,19 @@ namespace game
                 neterr("type", cn < 0);
                 return;
         }
+
+		if(detectspies && iswelcome) {
+			int welcome_expected_cn = -1;
+			for(int i = 0; i < player1->clientnum; i++) {
+				if(!getclient(i)) {
+					welcome_expected_cn = i;
+					break;
+				}
+			}
+			if(welcome_expected_cn >= 0) {
+				conoutf("\f8:: possible spy on cn %d", welcome_expected_cn);
+			}
+		}
     }
 
     struct demoreq
