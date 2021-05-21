@@ -16,6 +16,7 @@ namespace game
     VARP(showdeaths, 0, 0, 1);
 	VARP(showaccuracy, 0, 1, 2);
 	VARP(extinfoflags, 0, 0, 1);
+	VARP(showteamsize, 0, 0, 1);
 
     static hashset<teaminfo> teaminfos;
 
@@ -240,8 +241,14 @@ namespace game
             {
                 g.pushlist(); // vertical
 
+				g.pushlist();
                 if(sg.score>=10000) g.textf("%s: WIN", fgcolor, NULL, sg.team);
                 else g.textf("%s: %d", fgcolor, NULL, sg.team, sg.score);
+				if(showteamsize) {
+					g.spring();
+					g.textf("#%d ", fgcolor, NULL, sg.players.length());
+				}
+				g.poplist();
 
                 g.pushlist(); // horizontal
             }
@@ -434,8 +441,14 @@ namespace game
                 g.pushlist();
 
                 g.pushlist();
-                g.text("spectator", 0xFFFF80, " ");
-                g.strut(12);
+				if(showteamsize) {
+					g.textf("spectator #%d", 0xFFFF80, " ", spectators.length());
+					g.strut(15);
+				}
+				else {
+                	g.text("spectator ", 0xFFFF80, " ");
+					g.strut(12);
+				}
                 loopv(spectators)
                 {
                     fpsent *o = spectators[i];
