@@ -766,9 +766,9 @@ namespace game
 					formatstring(cname[cidx], "%s%s \fs\f5(%d)\fr%s", prefix, name, d->clientnum, suffix);
 				} else {
 					if(showbotskill && d->skill) {
-						formatstring(cname[cidx], "%s%s %d \f5[%d]\fr%s", prefix, name, d->skill, d->clientnum, suffix);
+						formatstring(cname[cidx], "%s%s %d \fs\f5[%d]\fr%s", prefix, name, d->skill, d->clientnum, suffix);
 					} else {
-						formatstring(cname[cidx], "%s%s \f5[%d]\fr%s", prefix, name, d->clientnum, suffix);
+						formatstring(cname[cidx], "%s%s \fs\f5[%d]\fr%s", prefix, name, d->clientnum, suffix);
 					}
 				}
 			}
