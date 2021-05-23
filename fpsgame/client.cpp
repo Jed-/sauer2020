@@ -1917,6 +1917,11 @@ namespace game
 
             case N_SERVMSG:
                 getstring(text, p);
+				if(identexists("filter_servmsg")) {
+					defformatstring(cmd, "filter_servmsg %s", escapestring(text));
+			        if(executebool(cmd)) break;
+				}
+
                 conoutf("%s", text);
                 break;
 
