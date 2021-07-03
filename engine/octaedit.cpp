@@ -1497,6 +1497,178 @@ void previewprefab(const char *name, const vec &color)
     }
 }
 
+/*
+void saveclipboard(char *fn) {
+	uchar *outbuf = NULL;
+	int inlen = 0, outlen = 0;
+	if(!fn || !strlen(fn)) {
+		conoutf("Error: no file specified");
+		return;
+	}
+	if(!packeditinfo(localedit, inlen, outbuf, outlen)) {
+		conoutf("Error: clipboard is empty or too big");
+		return;
+	}
+	conoutf("inlen: %d, outlen: %d", inlen, outlen);
+	stream *of = openrawfile(fn, "wb");
+	of->write(outbuf, outlen);
+	of->close();
+}
+COMMAND(saveclipboard, "s"); */
+
+void printsel() {
+	conoutf("sel: corner(%d), cx(%d), cxs(%d), cy(%d), cys(%d), o(%d,%d,%d), s(%d,%d,%d), grid(%d), orient(%d)", sel.corner, sel.cx, sel.cxs, sel.cy, sel.cys, sel.o.x, sel.o.y, sel.o.z, sel.s.x, sel.s.y, sel.s.z, sel.grid, sel.orient);
+}
+COMMAND(printsel, "");
+
+struct chunk {
+	uchar *buf;
+	int unpackedlen, packedlen;
+	int x, y, z, gridscale;
+	chunk(int x, int y, int z, int gridscale) : x(x), y(y), z(z), gridscale(gridscale) {buf = NULL; unpackedlen = packedlen = 0;}
+	~chunk() {
+		free(buf);
+	}
+};
+
+bool exportcube(int x, int y, int z, int gridscale, vector<chunk *> &expdata) {
+//	conoutf("CHUNK (%d, %d, %d) @ %d", x, y, z, gridscale);
+	if(gridscale <= 6) return false;
+	selinfo sel;
+	sel.grid = pow(2, gridscale);
+	sel.o = ivec(x * sel.grid, y * sel.grid, z * sel.grid);
+	sel.s = ivec(1,1,1);
+	editinfo *ei = NULL;
+	mpcopy(ei, sel, false);
+	chunk *c = new chunk(x, y, z, gridscale);
+//	conoutf(">> trying to pack");
+	if(!packeditinfo(ei, c->unpackedlen, c->buf, c->packedlen)) {
+//		conoutf(">> trying smaller size");
+		bool valid = true;
+		for(int i = 0; i <= 1; i++) for(int j = 0; j <= 1; j++) for(int k = 0; k <= 1; k++) {
+//			conoutf(">> %d, %d, %d @ %d", 2*x + i, 2*y + j, 2*z + k, gridscale-1);
+			if(!exportcube(2*x + i, 2*y + j, 2*z + k, gridscale-1, expdata)) {
+				valid = false;
+				break;
+			}
+		}
+		if(!valid) {
+			if(ei) free(ei);
+			return false;
+		};
+	} else {
+//		conoutf(">> OK [%d => %d]", c->unpackedlen, c->packedlen);
+		expdata.add(c);
+	}
+	if(ei) free(ei);
+	return true;
+}
+
+int exportentities(vector<uchar> &buf) {
+	vector<extentity *> &ents = entities::getents();
+	loopv(ents) {
+		extentity *e = ents[i];
+		putfloat(buf, e->o.x);
+		putfloat(buf, e->o.y);
+		putfloat(buf, e->o.z);
+		putint(buf, e->type);
+		putint(buf, e->attr1);
+		putint(buf, e->attr2);
+		putint(buf, e->attr3);
+		putint(buf, e->attr4);
+		putint(buf, e->attr5);
+	}
+	return ents.length();
+}
+
+void exportmaptofile(char *fn, int numents, vector<uchar> entbuf, int numvars, vector<chunk *> chunks) {
+	stream *of = openrawfile(fn, "wb");
+
+	vector<uchar> buf;
+
+	// header
+	putint(buf, worldscale);
+	putint(buf, numents);
+	putint(buf, numvars);
+	putint(buf, chunks.length());
+
+	// ents
+	buf.put(entbuf.getbuf(), entbuf.length());
+
+	// vars
+	enumerate(idents, ident, id,
+    {
+        if((id.type!=ID_VAR && id.type!=ID_FVAR && id.type!=ID_SVAR) || !(id.flags&IDF_OVERRIDE) || id.flags&IDF_READONLY || !(id.flags&IDF_OVERRIDDEN)) continue;
+		putint(buf, id.type == ID_VAR ? 0 : id.type == ID_FVAR ? 1 : 2);
+		sendstring(id.name, buf);
+		switch(id.type) {
+			case ID_VAR: {
+				putint(buf, *id.storage.i);
+				break;
+			}
+			case ID_FVAR: {
+				putfloat(buf, *id.storage.f);
+				break;
+			}
+			default: {
+				sendstring(*id.storage.s, buf);
+			}
+		}
+
+    });
+
+	// chunks
+	loopv(chunks) {
+		chunk *c = chunks[i];
+		putint(buf, c->gridscale);
+		putint(buf, c->x);
+		putint(buf, c->y);
+		putint(buf, c->z);
+		putint(buf, c->unpackedlen);
+		putint(buf, c->packedlen);
+		buf.put(c->buf, c->packedlen);
+	}
+
+	of->write(buf.getbuf(), buf.length());
+	of->close();
+}
+
+void exportmap(char *fn) {
+	if(!fn || !fn[0]) {
+		conoutf("no file specified");
+		return;
+	}
+	vector<uchar> entbuf;
+	int numents = exportentities(entbuf);
+
+	int numvars = 0;
+	enumerate(idents, ident, id,
+    {
+        if((id.type == ID_VAR || id.type == ID_FVAR || id.type == ID_SVAR) && id.flags&IDF_OVERRIDE && !(id.flags&IDF_READONLY) && id.flags&IDF_OVERRIDDEN) numvars++;
+    });
+
+	vector<chunk *> chunks;
+	int gridscale = worldscale - 1;
+	for(int x = 0; x <= 1; x++) for(int y = 0; y <= 1; y++) for(int z = 0; z <= 1; z++) {
+		vector<chunk *> expdata;
+		if(!exportcube(x, y, z, gridscale, expdata)) {
+			conoutf("failed to export map data");
+			return;
+		}
+		loopv(expdata) {
+			chunks.add(expdata[i]);
+		}
+	}
+	conoutf("map exported into %d chunk%s, %d ent%s, %d var%s",
+		chunks.length(), chunks.length() != 1 ? "s" : "",
+		numents, numents != 1 ? "s" : "",
+		numvars, numvars != 1 ? "s" : ""
+	);
+
+	exportmaptofile(fn, numents, entbuf, numvars, chunks);
+}
+COMMAND(exportmap, "s");
+
 void mpcopy(editinfo *&e, selinfo &sel, bool local)
 {
     if(local) game::edittrigger(sel, EDIT_COPY);

@@ -736,6 +736,41 @@ namespace game
         sendclientpacket(p.finalize(), 1);
         needclipboard = -1;
     }
+	void saveclipboard(char *fn) {
+		uchar *outbuf = NULL;
+		int inlen = 0, outlen = 0;
+		if(!fn || !strlen(fn)) {
+			conoutf("Error: no file specified");
+			return;
+		}
+		if(!packeditinfo(localedit, inlen, outbuf, outlen)) {
+			conoutf("Error: clipboard is empty or too big");
+			return;
+		}
+		conoutf("inlen: %d, outlen: %d", inlen, outlen);
+		stream *of = openrawfile(fn, "wb");
+		of->write(outbuf, outlen);
+		of->close();
+	}
+	COMMAND(saveclipboard, "s");
+	void saveents(char *fn) {
+		int inlen = 0, outlen = 0;
+		if(!fn || !strlen(fn)) {
+			conoutf("Error: no file specified");
+			return;
+		}
+		stream *f = openutf8file(fn, "w");
+		vector<extentity *> &ents = entities::getents();
+		loopv(ents) {
+			extentity *e = entities::ents[i];
+			f->printf("%d %d %d %d %d %d %d %d %d %d\n", i,
+				int(e->o.x), int(e->o.y), int(e->o.z),
+				e->type,
+				e->attr1, e->attr2, e->attr3, e->attr4, e->attr5);
+		}
+		f->close();
+	}
+	COMMAND(saveents, "s");
 
     void edittrigger(const selinfo &sel, int op, int arg1, int arg2, int arg3, const VSlot *vs)
     {
