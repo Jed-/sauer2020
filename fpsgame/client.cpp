@@ -1398,6 +1398,9 @@ namespace game
 
     extern int deathscore;
 
+	VARP(replaceping, 0, 0, 1);
+	VARP(pingvalue, INT_MIN, 0, INT_MAX);
+
     void parsemessages(int cn, fpsent *d, ucharbuf &p)
     {
         static char text[MAXTRANS];
@@ -1938,7 +1941,12 @@ namespace game
             }
 
             case N_PONG:
-                addmsg(N_CLIENTPING, "i", player1->ping = (player1->ping*5+totalmillis-getint(p))/6);
+				if(replaceping) {
+					getint(p); // ignore value from the server
+					addmsg(N_CLIENTPING, "i", player1->ping = pingvalue);
+				} else {
+                	addmsg(N_CLIENTPING, "i", player1->ping = (player1->ping*5+totalmillis-getint(p))/6);
+				}
                 break;
 
             case N_CLIENTPING:
