@@ -1399,6 +1399,9 @@ namespace game
             {
 				iswelcome = true;
                 connected = true;
+                if(identexists("onconnect")) {
+			        execident("onconnect");
+                }
                 notifywelcome();
                 break;
             }
