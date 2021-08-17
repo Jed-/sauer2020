@@ -1497,25 +1497,6 @@ void previewprefab(const char *name, const vec &color)
     }
 }
 
-/*
-void saveclipboard(char *fn) {
-	uchar *outbuf = NULL;
-	int inlen = 0, outlen = 0;
-	if(!fn || !strlen(fn)) {
-		conoutf("Error: no file specified");
-		return;
-	}
-	if(!packeditinfo(localedit, inlen, outbuf, outlen)) {
-		conoutf("Error: clipboard is empty or too big");
-		return;
-	}
-	conoutf("inlen: %d, outlen: %d", inlen, outlen);
-	stream *of = openrawfile(fn, "wb");
-	of->write(outbuf, outlen);
-	of->close();
-}
-COMMAND(saveclipboard, "s"); */
-
 void printsel() {
 	conoutf("sel: corner(%d), cx(%d), cxs(%d), cy(%d), cys(%d), o(%d,%d,%d), s(%d,%d,%d), grid(%d), orient(%d)", sel.corner, sel.cx, sel.cxs, sel.cy, sel.cys, sel.o.x, sel.o.y, sel.o.z, sel.s.x, sel.s.y, sel.s.z, sel.grid, sel.orient);
 }
@@ -1668,6 +1649,49 @@ void exportmap(char *fn) {
 	exportmaptofile(fn, numents, entbuf, numvars, chunks);
 }
 COMMAND(exportmap, "s");
+
+void exportents(char *fn) {
+    if(!fn || !strlen(fn)) {
+        conoutf("Error: no file specified");
+        return;
+    }
+    stream *f = openutf8file(fn, "w");
+    vector<extentity *> &ents = entities::getents();
+    loopv(ents) {
+        extentity *e = ents[i];
+        f->printf("%d %d %d %d %d %d %d %d %d %d\n", i,
+            int(e->o.x), int(e->o.y), int(e->o.z),
+            e->type,
+            e->attr1, e->attr2, e->attr3, e->attr4, e->attr5);
+    }
+    f->close();
+}
+COMMAND(exportents, "s");
+
+void exportvars(char *fn) {
+    if(!fn || !strlen(fn)) {
+        conoutf("Error: no file specified");
+        return;
+    }
+    stream *f = openutf8file(fn, "w");
+    enumerate(idents, ident, id,
+    {
+        if((id.type!=ID_VAR && id.type!=ID_FVAR && id.type!=ID_SVAR) || !(id.flags&IDF_OVERRIDE) || id.flags&IDF_READONLY || !(id.flags&IDF_OVERRIDDEN)) continue;
+        f->printf("%s ", id.name);
+        switch(id.type) {
+            case ID_VAR:
+                f->printf("%d\n", *id.storage.i);
+                break;
+            case ID_FVAR:
+                f->printf("%f\n", *id.storage.f);
+                break;
+            default:
+                f->printf("%s\n", *id.storage.s);
+        }
+    })
+    f->close();
+}
+COMMAND(exportvars, "s");
 
 void mpcopy(editinfo *&e, selinfo &sel, bool local)
 {
