@@ -1693,6 +1693,36 @@ void exportvars(char *fn) {
 }
 COMMAND(exportvars, "s");
 
+void exportmodels(char *fn) {
+    if(!fn || !strlen(fn)) {
+        conoutf("Error: no file specified");
+        return;
+    }
+    extern vector<mapmodelinfo> mapmodels;
+    stream *f = openutf8file(fn, "w");
+
+    f->printf("mapname %s\n", escapestring(game::getclientmap()));
+    f->printf("# name collide? ellipsecollide? scale translate:x translate:y translate:z bbcenter:x bbcenter:y bbcenter:z bbradius:x bbradius:y bbradius:z bbextend:x bbextend:y bbextend:z\n");
+
+    loopv(mapmodels) {
+        model *m = mapmodels[i].m;
+//        if(!m) loadmodel(NULL, i);
+        if(!m) continue;
+        f->printf("mapmodel %s %d %d %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
+            escapestring(m->name),
+            m->collide ? 1 : 0,
+            m->ellipsecollide ? 1 : 0,
+            m->scale,
+            m->translate.x, m->translate.y, m->translate.z,
+            m->bbcenter.x, m->bbcenter.y, m->bbcenter.z,
+            m->bbradius.x, m->bbradius.y, m->bbradius.z,
+            m->bbextend.x, m->bbextend.y, m->bbextend.z
+        );
+    }
+    f->close();
+}
+COMMAND(exportmodels, "s");
+
 void mpcopy(editinfo *&e, selinfo &sel, bool local)
 {
     if(local) game::edittrigger(sel, EDIT_COPY);
