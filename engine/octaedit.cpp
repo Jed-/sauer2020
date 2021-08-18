@@ -1701,22 +1701,33 @@ void exportmodels(char *fn) {
     extern vector<mapmodelinfo> mapmodels;
     stream *f = openutf8file(fn, "w");
 
-    f->printf("mapname %s\n", escapestring(game::getclientmap()));
-    f->printf("# name collide? ellipsecollide? scale translate:x translate:y translate:z bbcenter:x bbcenter:y bbcenter:z bbradius:x bbradius:y bbradius:z bbextend:x bbextend:y bbextend:z\n");
+    vec bbcenter, bbradius;
+    vec cbcenter, cbradius;
 
+    f->printf("mapname %s\n\n", escapestring(game::getclientmap()));
+
+    f->printf("# bb = bounding box\n");
+    f->printf("# cb = collision box\n");
+    f->printf("# name collide? ellipsecollide? bbcenter:x bbcenter:y bbcenter:z bbradius:x bbradius:y bbradius:z cbcenter:x cbcenter:y cbcenter:z cbradius:x cbradius:y cbradius:z rejectradius\n");
+
+    // make sure all available models are loaded
+    loopv(mapmodels) {
+        if(!mapmodels[i].m) loadmodel(NULL, i);
+    }
     loopv(mapmodels) {
         model *m = mapmodels[i].m;
-//        if(!m) loadmodel(NULL, i);
         if(!m) continue;
+        m->boundbox(bbcenter, bbradius);
+        const float rejectradius = m->collisionbox(cbcenter, cbradius);
         f->printf("mapmodel %s %d %d %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
             escapestring(m->name),
             m->collide ? 1 : 0,
             m->ellipsecollide ? 1 : 0,
-            m->scale,
-            m->translate.x, m->translate.y, m->translate.z,
-            m->bbcenter.x, m->bbcenter.y, m->bbcenter.z,
-            m->bbradius.x, m->bbradius.y, m->bbradius.z,
-            m->bbextend.x, m->bbextend.y, m->bbextend.z
+            bbcenter.x, bbcenter.y, bbcenter.z,
+            bbradius.x, bbradius.y, bbradius.z,
+            cbcenter.x, cbcenter.y, cbcenter.z,
+            cbradius.x, cbradius.y, cbradius.z,
+            rejectradius
         );
     }
     f->close();
