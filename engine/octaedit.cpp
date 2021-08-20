@@ -1514,7 +1514,7 @@ struct chunk {
 
 bool exportcube(int x, int y, int z, int gridscale, vector<chunk *> &expdata) {
 //	conoutf("CHUNK (%d, %d, %d) @ %d", x, y, z, gridscale);
-	if(gridscale <= 6) return false;
+	if(gridscale <= 5) return false;
 	selinfo sel;
 	sel.grid = pow(2, gridscale);
 	sel.o = ivec(x * sel.grid, y * sel.grid, z * sel.grid);
