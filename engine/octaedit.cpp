@@ -927,7 +927,7 @@ static void packvslots(cube &c, vector<uchar> &buf, vector<ushort> &used)
             VSlot &vs = *vslots[index];
             vslothdr &hdr = *(vslothdr *)buf.pad(sizeof(vslothdr));
             hdr.index = index;
-            hdr.slot = vs.slot->index;
+            hdr.slot = vs.slot ? vs.slot->index : vs.index;
             lilswap(&hdr.index, 2);
             packvslot(buf, vs);
         }
