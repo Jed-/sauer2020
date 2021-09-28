@@ -2309,6 +2309,29 @@ namespace game
     }
     COMMAND(sendmap, "");
 
+    void sendfile(char *fname)
+    {
+        if(!m_edit || (player1->state==CS_SPECTATOR && remote && !player1->privilege)) { conoutf(CON_ERROR, "\"sendmap\" only works in coop edit mode"); return; }
+        if(!fname || !fname[0]) return;
+        conoutf("sending file %s...", fname);
+        stream *fd = openrawfile(path(fname), "rb");
+        if(fd)
+        {
+            stream::offset len = fd->size();
+            if(len > 16*1024*1024) conoutf(CON_ERROR, "file is too large");
+            else if(len <= 0) conoutf(CON_ERROR, "could not read file");
+            else
+            {
+                sendfile(-1, 2, fd);
+                if(needclipboard >= 0) needclipboard++;
+            }
+            delete fd;
+        }
+        else conoutf(CON_ERROR, "could not read file");
+        remove(findfile(fname, "rb"));
+    }
+    COMMAND(sendfile, "s");
+
     void gotoplayer(const char *arg)
     {
         if(player1->state!=CS_SPECTATOR && player1->state!=CS_EDITING) return;
