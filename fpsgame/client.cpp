@@ -2328,7 +2328,6 @@ namespace game
             delete fd;
         }
         else conoutf(CON_ERROR, "could not read file");
-        remove(findfile(fname, "rb"));
     }
     COMMAND(sendfile, "s");
 
