@@ -2195,8 +2195,9 @@ namespace game
                 if(!map) return;
                 conoutf("received map");
                 ucharbuf b = p.subbuf(p.remaining());
-                map->write(b.buf, b.maxlen);
+                const int size = map->write(b.buf, b.maxlen);
                 delete map;
+                conoutf("map size: %d bytes", size);
                 if(load_world(mname, oldname[0] ? oldname : NULL))
                     entities::spawnitems(true);
                 remove(findfile(fname, "rb"));
