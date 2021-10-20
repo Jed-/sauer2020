@@ -518,6 +518,7 @@ extern void seedparticles();
 extern void updateparticles();
 extern void renderparticles(bool mainpass = false);
 extern bool printparticles(extentity &e, char *buf, int len);
+extern bool printparticlesfull(int efocus, extentity &e, char *buf, int len);
 
 // decal
 extern void initdecals();
@@ -610,4 +611,3 @@ namespace recorder
 #endif
 
 #endif
-
