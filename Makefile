@@ -368,6 +368,7 @@ engine/octaedit.o: shared/ents.h shared/command.h shared/glexts.h
 engine/octaedit.o: shared/glemu.h shared/iengine.h shared/igame.h
 engine/octaedit.o: engine/world.h engine/octa.h engine/lightmap.h
 engine/octaedit.o: engine/bih.h engine/texture.h engine/model.h
+engine/octaedit.o: engine/chunked.h
 engine/octarender.o: engine/engine.h shared/cube.h shared/tools.h
 engine/octarender.o: shared/geom.h shared/ents.h shared/command.h
 engine/octarender.o: shared/glexts.h shared/glemu.h shared/iengine.h

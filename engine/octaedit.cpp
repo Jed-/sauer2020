@@ -1650,6 +1650,8 @@ void exportmap(char *fn) {
 }
 COMMAND(exportmap, "s");
 
+#include "chunked.h"
+
 void exportents(char *fn) {
     if(!fn || !strlen(fn)) {
         conoutf("Error: no file specified");
