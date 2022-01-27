@@ -144,7 +144,7 @@ bool VALID_SIZES(vector<int> sizes, vector<int> indexes, int max_size) {
 		const int size = sizes[indexes[i]];
 		if(size <= 0) return false;
 		total += size;
-		if(total > max_size) return false;
+		if(max_size && total > max_size) return false;
 	}
 	return true;
 }
@@ -221,6 +221,7 @@ exported_chunk *exportcube_single(selinfo sel) {
 		success = false;
 	}
 	if(ei) free(ei);
+    if(compressBound(c->unpackedlen) > MAXSIZE_COMPRESSBOUND) return NULL;
 	return success ? c : NULL;
 }
 
@@ -278,7 +279,7 @@ struct chunk2 {
 		GET_PLANE_INDEXES(indexes, axis, which);
 		vector<int> compress_bounds;
 		loopv(unpacked_lens) compress_bounds.add(compressBound(unpacked_lens[i]));
-		if(!VALID_SIZES(packed_lens, indexes, MAXSIZE_COMPRESSED*1.25) || !VALID_SIZES(compress_bounds, indexes, MAXSIZE_COMPRESSBOUND)) {
+		if(!VALID_SIZES(packed_lens, indexes, MAXSIZE_COMPRESSED*0) || !VALID_SIZES(compress_bounds, indexes, MAXSIZE_COMPRESSBOUND*1.1)) {
 			return false;
 		}
 		return true;
@@ -289,7 +290,7 @@ struct chunk2 {
 		GET_PILLAR_INDEXES(indexes, axis, which);
 		vector<int> compress_bounds;
 		loopv(unpacked_lens) compress_bounds.add(compressBound(unpacked_lens[i]));
-		if(!VALID_SIZES(packed_lens, indexes, MAXSIZE_COMPRESSED*1.25) || !VALID_SIZES(compress_bounds, indexes, MAXSIZE_COMPRESSBOUND)) {
+		if(!VALID_SIZES(packed_lens, indexes, MAXSIZE_COMPRESSED*0) || !VALID_SIZES(compress_bounds, indexes, MAXSIZE_COMPRESSBOUND*1.1)) {
 			return false;
 		}
 		return true;
@@ -624,7 +625,6 @@ struct chunk2 {
 		exported_chunk *exp = export_single();
 		if(exp != NULL) {
 			v.add(exp);
-			conoutf("Exported chunk (direct) [%d %d %d %d]", exp->sel.grid, exp->sel.o.x, exp->sel.o.y, exp->sel.o.z);
 			return true;
 		}
 
