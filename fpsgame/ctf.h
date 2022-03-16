@@ -905,7 +905,7 @@ struct ctfclientmode : clientmode
 			}
 		}
 	}
-	
+
     void spawnflag(flag &f)
     {
         if(!holdspawns.inrange(f.spawnindex)) return;
@@ -959,7 +959,8 @@ struct ctfclientmode : clientmode
             particle_textcopy(d->abovehead(), ds, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
         }
         d->flags = dflags;
-        conoutf(CON_GAMEINFO, "%s scored for %s", teamcolorname(d), teamcolor("your team", ctfflagteam(team), "the enemy team"));
+        defformatstring(flagrunstr, " (%.3f s)", (totalmillis - d->laststealflag) / 1000.f);
+        conoutf(CON_GAMEINFO, "%s scored for %s%s", teamcolorname(d), teamcolor("your team", ctfflagteam(team), "the enemy team"), d == player1 && d->laststealflag ? flagrunstr : "");
         playsound(team==ctfteamflag(player1->team) ? S_FLAGSCORE : S_FLAGFAIL);
 
         if(score >= FLAGLIMIT) conoutf(CON_GAMEINFO, "%s captured %d flags", teamcolor("your team", ctfflagteam(team), "the enemy team"), score);
@@ -977,6 +978,11 @@ struct ctfclientmode : clientmode
         else conoutf(CON_GAMEINFO, "%s stole %s", teamcolorname(d), teamcolorflag(f));
         ownflag(i, d, lastmillis, m_hold ? ctfteamflag(d->team) : -1);
         teamsound(d, S_FLAGPICKUP);
+        if(!f.droptime) {
+            d->laststealflag = totalmillis;
+        } else {
+            d->laststealflag = 0;
+        }
     }
 
     void invisflag(int i, int invis)
