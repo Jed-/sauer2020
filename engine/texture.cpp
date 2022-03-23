@@ -229,9 +229,9 @@ static void reorients3tc(GLenum format, int blocksize, int w, int h, uchar *src,
             if(normals)
             {
                 ushort ncolor1 = color1, ncolor2 = color2;
-                if(flipx) 
-                { 
-                    ncolor1 = (ncolor1 & ~0xF800) | (0xF800 - (ncolor1 & 0xF800)); 
+                if(flipx)
+                {
+                    ncolor1 = (ncolor1 & ~0xF800) | (0xF800 - (ncolor1 & 0xF800));
                     ncolor2 = (ncolor2 & ~0xF800) | (0xF800 - (ncolor2 & 0xF800));
                 }
                 if(flipy)
@@ -509,7 +509,7 @@ void texcolormask(ImageData &s, const vec &color1, const vec &color2)
     );
     s.replace(d);
 }
-    
+
 void texdup(ImageData &s, int srcchan, int dstchan)
 {
     if(srcchan==dstchan || max(srcchan, dstchan) >= s.bpp) return;
@@ -544,7 +544,7 @@ void texgrey(ImageData &s)
             dst[1] = src[3];
         );
     }
-    else 
+    else
     {
         readwritetex(d, s, dst[0] = src[0]);
     }
@@ -555,12 +555,12 @@ void texpremul(ImageData &s)
 {
     switch(s.bpp)
     {
-        case 2: 
-            writetex(s, 
+        case 2:
+            writetex(s,
                 dst[0] = uchar((uint(dst[0])*uint(dst[1]))/255);
-            ); 
+            );
             break;
-        case 4: 
+        case 4:
             writetex(s,
                 uint alpha = dst[3];
                 dst[0] = uchar((uint(dst[0])*alpha)/255);
@@ -587,7 +587,7 @@ void texagrad(ImageData &s, float x2, float y2, float x1, float y1)
         miny = (0 - y1) / (y2 - y1);
         maxy = (1 - y1) / (y2 - y1);
     }
-    float dx = (maxx - minx)/max(s.w-1, 1),                  
+    float dx = (maxx - minx)/max(s.w-1, 1),
           dy = (maxy - miny)/max(s.h-1, 1),
           cury = miny;
     for(uchar *dstrow = s.data + s.bpp - 1, *endrow = dstrow + s.h*s.pitch; dstrow < endrow; dstrow += s.pitch)
@@ -739,10 +739,11 @@ VARFP(gpumipmap, 0, 0, 1, cleanupmipmaps());
 
 void uploadtexture(int tnum, GLenum target, GLenum internal, int tw, int th, GLenum format, GLenum type, void *pixels, int pw, int ph, int pitch, bool mipmap)
 {
+    if(headless) return;
     int bpp = formatsize(format), row = 0, rowalign = 0;
-    if(!pitch) pitch = pw*bpp; 
+    if(!pitch) pitch = pw*bpp;
     uchar *buf = NULL;
-    if(pw!=tw || ph!=th) 
+    if(pw!=tw || ph!=th)
     {
         buf = new uchar[tw*th*bpp];
         scaletexture((uchar *)pixels, pw, ph, bpp, pitch, buf, tw, th);
@@ -810,6 +811,7 @@ void uploadtexture(int tnum, GLenum target, GLenum internal, int tw, int th, GLe
 
 void uploadcompressedtexture(GLenum target, GLenum subtarget, GLenum format, int w, int h, uchar *data, int align, int blocksize, int levels, bool mipmap)
 {
+    if(headless) return;
     int hwlimit = target==GL_TEXTURE_CUBE_MAP ? hwcubetexsize : hwtexsize,
         sizelimit = levels > 1 && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
     int level = 0;
@@ -855,7 +857,7 @@ const GLint *swizzlemask(GLenum format)
     }
     return NULL;
 }
-    
+
 void setuptexparameters(int tnum, void *pixels, int clamp, int filter, GLenum format, GLenum target, bool swizzle)
 {
     glBindTexture(target, tnum);
@@ -983,19 +985,19 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, 
     if(!ph) ph = h;
     int tw = w, th = h;
     bool mipmap = filter > 1 && pixels;
-    if(resize && pixels) 
+    if(resize && pixels)
     {
         resizetexture(w, h, mipmap, false, target, 0, tw, th);
         if(mipmap) component = compressedformat(component, tw, th);
     }
-    uploadtexture(tnum, subtarget, component, tw, th, format, type, pixels, pw, ph, pitch, mipmap); 
+    uploadtexture(tnum, subtarget, component, tw, th, format, type, pixels, pw, ph, pitch, mipmap);
 }
 
 void createcompressedtexture(int tnum, int w, int h, uchar *data, int align, int blocksize, int levels, int clamp, int filter, GLenum format, GLenum subtarget, bool swizzle = false)
 {
     GLenum target = textarget(subtarget);
     if(filter >= 0 && clamp >= 0) setuptexparameters(tnum, data, clamp, filter, format, target);
-    uploadcompressedtexture(target, subtarget, format, w, h, data, align, blocksize, levels, filter > 1); 
+    uploadcompressedtexture(target, subtarget, format, w, h, data, align, blocksize, levels, filter > 1);
 }
 
 hashnameset<Texture> textures;
@@ -1035,7 +1037,7 @@ int texalign(const void *data, int w, int bpp)
     if(stride&2) return 2;
     return 4;
 }
-    
+
 static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clamp = 0, bool mipit = true, bool canreduce = false, bool transient = false, int compress = 0)
 {
     if(!t)
@@ -1065,13 +1067,13 @@ static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clam
         t->bpp = formatsize(format);
         t->type |= Texture::COMPRESSED;
     }
-    else 
+    else
     {
         format = texformat(s.bpp, swizzle);
         t->bpp = s.bpp;
         if(swizzle && hasTRG && !hasTSW && swizzlemask(format))
         {
-            swizzleimage(s);   
+            swizzleimage(s);
             format = texformat(s.bpp, swizzle);
             t->bpp = s.bpp;
         }
@@ -1092,7 +1094,7 @@ static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clam
             levels--;
             if(t->w > 1) t->w /= 2;
             if(t->h > 1) t->h /= 2;
-        } 
+        }
         int sizelimit = mipit && maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize;
         while(t->w > sizelimit || t->h > sizelimit)
         {
@@ -1141,7 +1143,7 @@ SDL_Surface *creatergbsurface(SDL_Surface *os)
 SDL_Surface *creatergbasurface(SDL_Surface *os)
 {
     SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 32, RGBAMASKS);
-    if(ns) 
+    if(ns)
     {
         SDL_SetSurfaceBlendMode(os, SDL_BLENDMODE_NONE);
         SDL_BlitSurface(os, NULL, ns, NULL);
@@ -1166,9 +1168,9 @@ SDL_Surface *fixsurfaceformat(SDL_Surface *s)
 {
     if(!s) return NULL;
     if(!s->pixels || min(s->w, s->h) <= 0 || s->format->BytesPerPixel <= 0)
-    { 
-        SDL_FreeSurface(s); 
-        return NULL; 
+    {
+        SDL_FreeSurface(s);
+        return NULL;
     }
     static const uint rgbmasks[] = { RGBMASKS }, rgbamasks[] = { RGBAMASKS };
     switch(s->format->BytesPerPixel)
@@ -1177,7 +1179,7 @@ SDL_Surface *fixsurfaceformat(SDL_Surface *s)
             if(!checkgrayscale(s)) return SDL_GetColorKey(s, NULL) >= 0 ? creatergbasurface(s) : creatergbsurface(s);
             break;
         case 3:
-            if(s->format->Rmask != rgbmasks[0] || s->format->Gmask != rgbmasks[1] || s->format->Bmask != rgbmasks[2]) 
+            if(s->format->Rmask != rgbmasks[0] || s->format->Gmask != rgbmasks[1] || s->format->Bmask != rgbmasks[2])
                 return creatergbsurface(s);
             break;
         case 4:
@@ -1201,7 +1203,7 @@ void texflip(ImageData &s)
     s.replace(d);
 }
 
-void texnormal(ImageData &s, int emphasis)    
+void texnormal(ImageData &s, int emphasis)
 {
     ImageData d(s.w, s.h, 3);
     uchar *src = s.data, *dst = d.data;
@@ -1282,7 +1284,7 @@ static void blurtexture(int w, int h, uchar *dst, const uchar *src, int margin)
                 dst[1] = uchar(v.y*mag + 127.5f);
                 dst[2] = uchar(v.z*mag + 127.5f);
             }
-            else 
+            else
             {
                 dst[0] = dr>>8;
                 dst[1] = dg>>8;
@@ -1315,7 +1317,7 @@ void blurnormals(int n, int w, int h, bvec *dst, const bvec *src, int margin)
         case 2: blurtexture<2, 3, true>(w, h, dst->v, src->v, margin); break;
     }
 }
- 
+
 void texblur(ImageData &s, int n, int r)
 {
     if(s.bpp < 3) return;
@@ -1349,7 +1351,7 @@ SDL_Surface *loadsurface(const char *name)
     if(z)
     {
         SDL_RWops *rw = z->rwops();
-        if(rw) 
+        if(rw)
         {
             char *ext = (char *)strrchr(name, '.');
             if(ext) ++ext;
@@ -1361,7 +1363,7 @@ SDL_Surface *loadsurface(const char *name)
     if(!s) s = IMG_Load(findfile(name, "rb"));
     return fixsurfaceformat(s);
 }
-   
+
 static vec parsevec(const char *arg)
 {
     vec v(0, 0, 0);
@@ -1386,7 +1388,7 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
     if(!tname)
     {
         if(!tex) return false;
-        if(tex->name[0]=='<') 
+        if(tex->name[0]=='<')
         {
             cmds = tex->name;
             file = strrchr(tex->name, '>');
@@ -1394,12 +1396,12 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
             file++;
         }
         else file = tex->name;
-        
+
         static string pname;
         formatstring(pname, "packages/%s", file);
         file = path(pname);
     }
-    else if(tname[0]=='<') 
+    else if(tname[0]=='<')
     {
         cmds = tname;
         file = strrchr(tname, '>');
@@ -1448,7 +1450,7 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         }
         if(d.data && !d.compressed && !dds && compress) *compress = scaledds;
     }
-        
+
     if(!d.data)
     {
         SDL_Surface *s = NULL;
@@ -1476,10 +1478,10 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
     {
         PARSETEXCOMMANDS(cmds);
         if(d.compressed) goto compressed;
-        if(matchstring(cmd, len, "mad")) texmad(d, parsevec(arg[0]), parsevec(arg[1])); 
+        if(matchstring(cmd, len, "mad")) texmad(d, parsevec(arg[0]), parsevec(arg[1]));
         else if(matchstring(cmd, len, "colorify")) texcolorify(d, parsevec(arg[0]), parsevec(arg[1]));
         else if(matchstring(cmd, len, "colormask")) texcolormask(d, parsevec(arg[0]), *arg[1] ? parsevec(arg[1]) : vec(1, 1, 1));
-        else if(matchstring(cmd, len, "normal")) 
+        else if(matchstring(cmd, len, "normal"))
         {
             int emphasis = atoi(arg[0]);
             texnormal(d, emphasis > 0 ? emphasis : 3);
@@ -1497,8 +1499,8 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         }
         else if(matchstring(cmd, len, "premul")) texpremul(d);
         else if(matchstring(cmd, len, "agrad")) texagrad(d, atof(arg[0]), atof(arg[1]), atof(arg[2]), atof(arg[3]));
-        else if(matchstring(cmd, len, "compress") || matchstring(cmd, len, "dds")) 
-        { 
+        else if(matchstring(cmd, len, "compress") || matchstring(cmd, len, "dds"))
+        {
             int scale = atoi(arg[0]);
             if(scale <= 0) scale = scaledds;
             if(compress) *compress = scale;
@@ -1554,6 +1556,7 @@ uchar *loadalphamask(Texture *t)
 
 Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
 {
+    if(headless) return NULL;
     string tname;
     copystring(tname, name);
     Texture *t = textures.access(path(tname));
@@ -1566,6 +1569,7 @@ Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
 
 bool settexture(const char *name, int clamp)
 {
+    if(headless) return true;
     Texture *t = textureload(name, clamp, true, false);
     glBindTexture(GL_TEXTURE_2D, t->id);
     return t != notexture;
@@ -1582,7 +1586,7 @@ void texturereset(int *n)
     if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
     resetslotshader();
     int limit = clamp(*n, 0, slots.length());
-    for(int i = limit; i < slots.length(); i++) 
+    for(int i = limit; i < slots.length(); i++)
     {
         Slot *s = slots[i];
         for(VSlot *vs = s->variants; vs; vs = vs->next) vs->slot = &dummyslot;
@@ -1709,7 +1713,7 @@ int compactvslots()
                 {
                     VSlot &ds = *vslots[lastdiscard++];
                     if(!ds.changed && ds.index < 0) ds.index = compactedvslots++;
-                } 
+                }
                 vs.index = compactedvslots++;
             }
         }
@@ -1723,10 +1727,10 @@ int compactvslots()
         VSlot &vs = *vslots[i];
         if(vs.index >= 0 && vs.layer && vslots.inrange(vs.layer)) vs.layer = vslots[vs.layer]->index;
     }
-    loopv(vslots) 
+    loopv(vslots)
     {
-        while(vslots[i]->index >= 0 && vslots[i]->index != i)     
-            swap(vslots[i], vslots[vslots[i]->index]); 
+        while(vslots[i]->index >= 0 && vslots[i]->index != i)
+            swap(vslots[i], vslots[vslots[i]->index]);
     }
     for(int i = compactedvslots; i < vslots.length(); i++) delete vslots[i];
     vslots.setsize(compactedvslots);
@@ -1763,7 +1767,7 @@ static void propagatevslot(VSlot &dst, const VSlot &src, int diff, bool edit = f
 {
     if(diff & (1<<VSLOT_SHPARAM)) loopv(src.params) dst.params.add(src.params[i]);
     if(diff & (1<<VSLOT_SCALE)) dst.scale = src.scale;
-    if(diff & (1<<VSLOT_ROTATION)) 
+    if(diff & (1<<VSLOT_ROTATION))
     {
         dst.rotation = src.rotation;
         if(edit && !dst.offset.iszero()) clampvslotoffset(dst);
@@ -1794,7 +1798,7 @@ static void propagatevslot(VSlot *root, int changed)
 
 static void mergevslot(VSlot &dst, const VSlot &src, int diff, Slot *slot = NULL)
 {
-    if(diff & (1<<VSLOT_SHPARAM)) loopv(src.params) 
+    if(diff & (1<<VSLOT_SHPARAM)) loopv(src.params)
     {
         const SlotShaderParam &sp = src.params[i];
         loopvj(dst.params)
@@ -1809,11 +1813,11 @@ static void mergevslot(VSlot &dst, const VSlot &src, int diff, Slot *slot = NULL
         dst.params.add(sp);
     nextparam:;
     }
-    if(diff & (1<<VSLOT_SCALE)) 
+    if(diff & (1<<VSLOT_SCALE))
     {
         dst.scale = clamp(dst.scale*src.scale, 1/8.0f, 8.0f);
     }
-    if(diff & (1<<VSLOT_ROTATION)) 
+    if(diff & (1<<VSLOT_ROTATION))
     {
         dst.rotation = clamp(dst.rotation + src.rotation, 0, 7);
         if(!dst.offset.iszero()) clampvslotoffset(dst, slot);
@@ -1862,10 +1866,10 @@ static VSlot *emptyvslot(Slot &owner)
 
 static bool comparevslot(const VSlot &dst, const VSlot &src, int diff)
 {
-    if(diff & (1<<VSLOT_SHPARAM)) 
+    if(diff & (1<<VSLOT_SHPARAM))
     {
         if(src.params.length() != dst.params.length()) return false;
-        loopv(src.params) 
+        loopv(src.params)
         {
             const SlotShaderParam &sp = src.params[i], &dp = dst.params[i];
             if(sp.name != dp.name || memcmp(sp.val, dp.val, sizeof(sp.val))) return false;
@@ -2050,7 +2054,7 @@ VSlot *editvslot(const VSlot &src, const VSlot &delta)
 
 static void fixinsidefaces(cube *c, const ivec &o, int size, int tex)
 {
-    loopi(8) 
+    loopi(8)
     {
         ivec co(i, o, size);
         if(c[i].children) fixinsidefaces(c[i].children, co, size>>1, tex);
@@ -2176,7 +2180,7 @@ void texlayer(int *layer, char *name, int *mode, float *scale)
     if(slots.empty()) return;
     Slot &s = *slots.last();
     s.variants->layer = *layer < 0 ? max(slots.length()-1+*layer, 0) : *layer;
-    s.layermaskname = name[0] ? newstring(path(makerelpath("packages", name))) : NULL; 
+    s.layermaskname = name[0] ? newstring(path(makerelpath("packages", name))) : NULL;
     s.layermaskmode = *mode;
     s.layermaskscale = *scale <= 0 ? 1 : *scale;
     propagatevslot(s.variants, 1<<VSLOT_LAYER);
@@ -2279,7 +2283,7 @@ static void addname(vector<char> &key, Slot &slot, Slot::Tex &t, bool combined =
 
 static void texcombine(Slot &s, int index, Slot::Tex &t, bool forceload = false)
 {
-    vector<char> key; 
+    vector<char> key;
     addname(key, s, t);
     int texmask = 0;
     if(!forceload) switch(t.type)
@@ -2383,7 +2387,7 @@ void linkslotshaders()
 {
     loopv(slots) if(slots[i]->loaded) linkslotshader(*slots[i]);
     loopv(vslots) if(vslots[i]->linked) linkvslotshader(*vslots[i]);
-    loopi((MATF_VOLUME|MATF_INDEX)+1) if(materialslots[i].loaded) 
+    loopi((MATF_VOLUME|MATF_INDEX)+1) if(materialslots[i].loaded)
     {
         linkslotshader(materialslots[i]);
         linkvslotshader(materialslots[i]);
@@ -2409,17 +2413,17 @@ Texture *loadthumbnail(Slot &slot)
         addname(name, slot, slot.sts[0], false, prefix);
     }
     int glow = -1;
-    if(slot.texmask&(1<<TEX_GLOW)) 
-    { 
-        loopvj(slot.sts) if(slot.sts[j].type==TEX_GLOW) { glow = j; break; } 
-        if(glow >= 0) 
+    if(slot.texmask&(1<<TEX_GLOW))
+    {
+        loopvj(slot.sts) if(slot.sts[j].type==TEX_GLOW) { glow = j; break; }
+        if(glow >= 0)
         {
-            defformatstring(prefix, "<glow:%.2f/%.2f/%.2f>", vslot.glowcolor.x, vslot.glowcolor.y, vslot.glowcolor.z); 
+            defformatstring(prefix, "<glow:%.2f/%.2f/%.2f>", vslot.glowcolor.x, vslot.glowcolor.y, vslot.glowcolor.z);
             addname(name, slot, slot.sts[glow], true, prefix);
         }
     }
     VSlot *layer = vslot.layer ? &lookupvslot(vslot.layer, false) : NULL;
-    if(layer) 
+    if(layer)
     {
         if(layer->colorscale == vec(1, 1, 1)) addname(name, *layer->slot, layer->slot->sts[0], true, "<layer>");
         else
@@ -2453,12 +2457,12 @@ Texture *loadthumbnail(Slot &slot)
                 if(layer->colorscale != vec(1, 1, 1)) texmad(l, layer->colorscale, vec(0, 0, 0));
                 if(l.w != s.w/2 || l.h != s.h/2) scaleimage(l, s.w/2, s.h/2);
                 forcergbimage(s);
-                forcergbimage(l); 
+                forcergbimage(l);
                 uchar *dstrow = &s.data[s.pitch*l.h + s.bpp*l.w], *srcrow = l.data;
-                loop(y, l.h) 
+                loop(y, l.h)
                 {
                     for(uchar *dst = dstrow, *src = srcrow, *end = &srcrow[l.w*l.bpp]; src < end; dst += s.bpp, src += l.bpp)
-                        loopk(3) dst[k] = src[k]; 
+                        loopk(3) dst[k] = src[k];
                     dstrow += s.pitch;
                     srcrow += l.pitch;
                 }
@@ -2478,7 +2482,7 @@ void loadlayermasks()
     loopv(slots)
     {
         Slot &slot = *slots[i];
-        if(slot.loaded && slot.layermaskname && !slot.layermask) 
+        if(slot.loaded && slot.layermaskname && !slot.layermask)
         {
             slot.layermask = new ImageData;
             texturedata(*slot.layermask, slot.layermaskname);
@@ -2535,7 +2539,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
     {
         copystring(tname, name);
         t = textures.access(path(tname));
-        if(t) 
+        if(t)
         {
             if(!transient && t->type&Texture::TRANSIENT) t->type &= ~Texture::TRANSIENT;
             return t;
@@ -2584,7 +2588,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
         t->bpp = formatsize(format);
         t->type |= Texture::COMPRESSED;
     }
-    else 
+    else
     {
         format = texformat(surface[0].bpp, true);
         t->bpp = surface[0].bpp;
@@ -2674,7 +2678,7 @@ struct envmap
     {
         if(tex) { glDeleteTextures(1, &tex); tex = 0; }
     }
-};  
+};
 
 static vector<envmap> envmaps;
 static Texture *skyenvmap = NULL;
@@ -2761,7 +2765,7 @@ void initenvmaps()
         envmap &em = envmaps.add();
         em.radius = ent.attr1 ? clamp(int(ent.attr1), 0, 10000) : envmapradius;
         em.size = ent.attr2 ? clamp(int(ent.attr2), 4, 9) : 0;
-        em.blur = ent.attr3 ? clamp(int(ent.attr3), 1, 2) : 0; 
+        em.blur = ent.attr3 ? clamp(int(ent.attr3), 1, 2) : 0;
         em.o = ent.o;
     }
 }
@@ -2845,7 +2849,7 @@ void cleanuptexture(Texture *t)
 {
     DELETEA(t->alphamask);
     if(t->id) { glDeleteTextures(1, &t->id); t->id = 0; }
-    if(t->type&Texture::TRANSIENT) textures.remove(t->name); 
+    if(t->type&Texture::TRANSIENT) textures.remove(t->name);
 }
 
 void cleanuptextures()
@@ -2881,7 +2885,7 @@ bool reloadtexture(Texture &tex)
         case Texture::CUBEMAP:
             if(!cubemaploadwildcard(&tex, NULL, tex.mipmap, true)) return false;
             break;
-    }    
+    }
     return true;
 }
 
@@ -2906,7 +2910,7 @@ COMMAND(reloadtex, "s");
 void reloadtextures()
 {
     int reloaded = 0;
-    enumerate(textures, Texture, tex, 
+    enumerate(textures, Texture, tex,
     {
         loadprogress = float(++reloaded)/textures.numelems;
         reloadtexture(tex);
@@ -2916,31 +2920,31 @@ void reloadtextures()
 
 enum
 {
-    DDSD_CAPS                  = 0x00000001, 
+    DDSD_CAPS                  = 0x00000001,
     DDSD_HEIGHT                = 0x00000002,
-    DDSD_WIDTH                 = 0x00000004, 
-    DDSD_PITCH                 = 0x00000008, 
-    DDSD_PIXELFORMAT           = 0x00001000, 
-    DDSD_MIPMAPCOUNT           = 0x00020000, 
-    DDSD_LINEARSIZE            = 0x00080000, 
-    DDSD_BACKBUFFERCOUNT       = 0x00800000, 
-    DDPF_ALPHAPIXELS           = 0x00000001, 
-    DDPF_FOURCC                = 0x00000004, 
-    DDPF_INDEXED               = 0x00000020, 
+    DDSD_WIDTH                 = 0x00000004,
+    DDSD_PITCH                 = 0x00000008,
+    DDSD_PIXELFORMAT           = 0x00001000,
+    DDSD_MIPMAPCOUNT           = 0x00020000,
+    DDSD_LINEARSIZE            = 0x00080000,
+    DDSD_BACKBUFFERCOUNT       = 0x00800000,
+    DDPF_ALPHAPIXELS           = 0x00000001,
+    DDPF_FOURCC                = 0x00000004,
+    DDPF_INDEXED               = 0x00000020,
     DDPF_ALPHA                 = 0x00000002,
-    DDPF_RGB                   = 0x00000040, 
+    DDPF_RGB                   = 0x00000040,
     DDPF_COMPRESSED            = 0x00000080,
     DDPF_LUMINANCE             = 0x00020000,
-    DDSCAPS_COMPLEX            = 0x00000008, 
-    DDSCAPS_TEXTURE            = 0x00001000, 
-    DDSCAPS_MIPMAP             = 0x00400000, 
-    DDSCAPS2_CUBEMAP           = 0x00000200, 
-    DDSCAPS2_CUBEMAP_POSITIVEX = 0x00000400, 
-    DDSCAPS2_CUBEMAP_NEGATIVEX = 0x00000800, 
-    DDSCAPS2_CUBEMAP_POSITIVEY = 0x00001000, 
-    DDSCAPS2_CUBEMAP_NEGATIVEY = 0x00002000, 
-    DDSCAPS2_CUBEMAP_POSITIVEZ = 0x00004000, 
-    DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x00008000, 
+    DDSCAPS_COMPLEX            = 0x00000008,
+    DDSCAPS_TEXTURE            = 0x00001000,
+    DDSCAPS_MIPMAP             = 0x00400000,
+    DDSCAPS2_CUBEMAP           = 0x00000200,
+    DDSCAPS2_CUBEMAP_POSITIVEX = 0x00000400,
+    DDSCAPS2_CUBEMAP_NEGATIVEX = 0x00000800,
+    DDSCAPS2_CUBEMAP_POSITIVEY = 0x00001000,
+    DDSCAPS2_CUBEMAP_NEGATIVEY = 0x00002000,
+    DDSCAPS2_CUBEMAP_POSITIVEZ = 0x00004000,
+    DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x00008000,
     DDSCAPS2_VOLUME            = 0x00200000,
     FOURCC_DXT1                = 0x31545844,
     FOURCC_DXT2                = 0x32545844,
@@ -2965,16 +2969,16 @@ struct DDPIXELFORMAT
 struct DDSCAPS2 { uint dwCaps, dwCaps2, dwCaps3, dwCaps4; };
 struct DDSURFACEDESC2
 {
-    uint dwSize, dwFlags, dwHeight, dwWidth; 
+    uint dwSize, dwFlags, dwHeight, dwWidth;
     union { int lPitch; uint dwLinearSize; };
-    uint dwBackBufferCount; 
+    uint dwBackBufferCount;
     union { uint dwMipMapCount, dwRefreshRate, dwSrcVBHandle; };
-    uint dwAlphaBitDepth, dwReserved, lpSurface; 
+    uint dwAlphaBitDepth, dwReserved, lpSurface;
     union { DDCOLORKEY ddckCKDestOverlay; uint dwEmptyFaceColor; };
-    DDCOLORKEY ddckCKDestBlt, ddckCKSrcOverlay, ddckCKSrcBlt;     
+    DDCOLORKEY ddckCKDestBlt, ddckCKSrcOverlay, ddckCKSrcBlt;
     union { DDPIXELFORMAT ddpfPixelFormat; uint dwFVF; };
-    DDSCAPS2 ddsCaps;  
-    uint dwTextureStage;   
+    DDSCAPS2 ddsCaps;
+    uint dwTextureStage;
 };
 
 #define DECODEDDS(name, dbpp, initblock, writeval, nextval) \
@@ -3160,9 +3164,9 @@ bool loaddds(const char *filename, ImageData &image, int force)
     int bpp = 0;
     switch(format)
     {
-        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT: 
+        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: bpp = 8; break;
-        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT: 
+        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: bpp = 16; break;
         case GL_COMPRESSED_LUMINANCE_LATC1_EXT:
         case GL_COMPRESSED_RED_RGTC1: bpp = 8; break;
@@ -3211,7 +3215,7 @@ void gendds(char *infile, char *outfile)
     if(t==notexture) { conoutf(CON_ERROR, "failed loading %s", infile); return; }
 
     glBindTexture(GL_TEXTURE_2D, t->id);
-    GLint compressed = 0, format = 0, width = 0, height = 0; 
+    GLint compressed = 0, format = 0, width = 0, height = 0;
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED, &compressed);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
@@ -3243,9 +3247,9 @@ void gendds(char *infile, char *outfile)
         else concatstring(buf, ".dds");
         outfile = buf;
     }
-    
+
     stream *f = openfile(path(outfile, true), "wb");
-    if(!f) { conoutf(CON_ERROR, "failed writing to %s", outfile); return; } 
+    if(!f) { conoutf(CON_ERROR, "failed writing to %s", outfile); return; }
 
     int csize = 0;
     for(int lw = width, lh = height, level = 0;;)
@@ -3269,7 +3273,7 @@ void gendds(char *infile, char *outfile)
     d.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
     d.ddpfPixelFormat.dwFlags = DDPF_FOURCC | (alphaformat(uncompressedformat(format)) ? DDPF_ALPHAPIXELS : 0);
     d.ddpfPixelFormat.dwFourCC = fourcc;
-   
+
     uchar *data = new uchar[csize], *dst = data;
     for(int lw = width, lh = height;;)
     {
@@ -3288,7 +3292,7 @@ void gendds(char *infile, char *outfile)
     f->write(&d, sizeof(d));
     f->write(data, csize);
     delete f;
-    
+
     delete[] data;
 
     conoutf("wrote DDS file %s", outfile);
@@ -3641,4 +3645,3 @@ void mergenormalmaps(char *heightfile, char *normalfile) // jpg/png/tga + tga ->
 
 COMMAND(flipnormalmapy, "ss");
 COMMAND(mergenormalmaps, "ss");
-

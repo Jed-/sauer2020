@@ -608,6 +608,9 @@ namespace recorder
     extern void cleanup();
 }
 
+// headless
+extern bool headless;
+
 #endif
 
 #endif

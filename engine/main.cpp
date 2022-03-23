@@ -6,6 +6,9 @@
 #include "SDL_syswm.h"
 #endif
 
+bool headless = false;
+ICOMMAND(headless, "", (), intret(headless ? 1 : 0));
+
 extern void cleargamma();
 
 void cleanup()
@@ -179,6 +182,7 @@ void bgquad(float x, float y, float w, float h, float tx = 0, float ty = 0, floa
 
 void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool restore, bool force)
 {
+    if(headless) return;
     if(!inbetweenframes && !force) return;
 
     if(!restore || force) stopsounds(); // stop sounds while loading
@@ -325,6 +329,7 @@ float loadprogress = 0;
 
 void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
 {
+    if(headless) return;
     if(!inbetweenframes || drawtex) return;
 
     extern int menufps, maxfps;
@@ -472,6 +477,7 @@ VAR(sdl_xgrab_bug, 0, 0, 1);
 
 void inputgrab(bool on, bool delay = false)
 {
+    if(headless) return;
 #ifdef SDL_VIDEO_DRIVER_X11
     bool wasrelativemouse = relativemouse;
 #endif
@@ -640,10 +646,15 @@ void setupscreen()
     }
     curvsync = -1;
 
-    SDL_Rect desktop;
-    if(SDL_GetDisplayBounds(0, &desktop) < 0) fatal("failed querying desktop bounds: %s", SDL_GetError());
-    desktopw = desktop.w;
-    desktoph = desktop.h;
+    if(headless) {
+        desktopw = 640;
+        desktoph = 360;
+    } else {
+        SDL_Rect desktop;
+        if(SDL_GetDisplayBounds(0, &desktop) < 0) fatal("failed querying desktop bounds: %s", SDL_GetError());
+        desktopw = desktop.w;
+        desktoph = desktop.h;
+    }
 
     if(scr_h < 0) scr_h = fullscreen ? desktoph : SCR_DEFAULTH;
     if(scr_w < 0) scr_w = (scr_h*desktopw)/desktoph;
@@ -656,7 +667,7 @@ void setupscreen()
     }
 
     int winx = SDL_WINDOWPOS_UNDEFINED, winy = SDL_WINDOWPOS_UNDEFINED, winw = scr_w, winh = scr_h, flags = SDL_WINDOW_RESIZABLE;
-    if(fullscreen)
+    if(fullscreen && !headless)
     {
         if(fullscreendesktop)
         {
@@ -688,48 +699,55 @@ void setupscreen()
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     }
-    loopi(sizeof(configs)/sizeof(configs[0]))
-    {
-        config = configs[i];
-        if(!depthbits && config&1) continue;
-        if(fsaa<=0 && config&2) continue;
-        if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? depthbits : 24);
-        if(fsaa>0)
+    if(!headless) {
+        loopi(sizeof(configs)/sizeof(configs[0]))
         {
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&2 ? 1 : 0);
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&2 ? fsaa : 0);
-        }
-        screen = SDL_CreateWindow("Cube 2: Sauerbraten", winx, winy, winw, winh, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | flags);
-        if(!screen) continue;
+            config = configs[i];
+            if(!depthbits && config&1) continue;
+            if(fsaa<=0 && config&2) continue;
+            if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? depthbits : 24);
+            if(fsaa>0)
+            {
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&2 ? 1 : 0);
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&2 ? fsaa : 0);
+            }
+            screen = SDL_CreateWindow("Cube 2: Sauerbraten", winx, winy, winw, winh, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | flags);
+            if(!screen) continue;
 
-    #ifdef __APPLE__
-        static const int glversions[] = { 32, 20 };
-    #else
-        static const int glversions[] = { 33, 32, 31, 30, 20 };
-    #endif
-        loopj(sizeof(glversions)/sizeof(glversions[0]))
-        {
-            glcompat = glversions[j] <= 30 ? 1 : 0;
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, glversions[j] / 10);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, glversions[j] % 10);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, glversions[j] >= 32 ? SDL_GL_CONTEXT_PROFILE_CORE : 0);
-            glcontext = SDL_GL_CreateContext(screen);
+        #ifdef __APPLE__
+            static const int glversions[] = { 32, 20 };
+        #else
+            static const int glversions[] = { 33, 32, 31, 30, 20 };
+        #endif
+            loopj(sizeof(glversions)/sizeof(glversions[0]))
+            {
+                glcompat = glversions[j] <= 30 ? 1 : 0;
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, glversions[j] / 10);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, glversions[j] % 10);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, glversions[j] >= 32 ? SDL_GL_CONTEXT_PROFILE_CORE : 0);
+                glcontext = SDL_GL_CreateContext(screen);
+                if(glcontext) break;
+            }
             if(glcontext) break;
         }
-        if(glcontext) break;
     }
-    if(!screen) fatal("failed to create OpenGL window: %s", SDL_GetError());
-    else if(!glcontext) fatal("failed to create OpenGL context: %s", SDL_GetError());
+    if(!screen && !headless) fatal("failed to create OpenGL window: %s", SDL_GetError());
+    else if(!glcontext && !headless) fatal("failed to create OpenGL context: %s", SDL_GetError());
     else
     {
         if(depthbits && (config&1)==0) conoutf(CON_WARN, "%d bit z-buffer not supported - disabling", depthbits);
         if(fsaa>0 && (config&2)==0) conoutf(CON_WARN, "%dx anti-aliasing not supported - disabling", fsaa);
     }
 
-    SDL_SetWindowMinimumSize(screen, SCR_MINW, SCR_MINH);
-    SDL_SetWindowMaximumSize(screen, SCR_MAXW, SCR_MAXH);
+    if(headless) {
+        screenw = desktopw;
+        screenh = desktoph;
+    } else {
+        SDL_SetWindowMinimumSize(screen, SCR_MINW, SCR_MINH);
+        SDL_SetWindowMaximumSize(screen, SCR_MAXW, SCR_MAXH);
 
-    SDL_GetWindowSize(screen, &screenw, &screenh);
+        SDL_GetWindowSize(screen, &screenw, &screenh);
+    }
 }
 
 void resetgl()
@@ -1224,6 +1242,7 @@ int main(int argc, char **argv)
                 break;
             }
             case 'x': initscript = &argv[i][2]; break;
+            case 'c': headless = true; break;
             default: if(!serveroption(argv[i])) gameargs.add(argv[i]); break;
         }
         else gameargs.add(argv[i]);
@@ -1235,7 +1254,6 @@ int main(int argc, char **argv)
     if(dedicated <= 1)
     {
         logoutf("init: sdl");
-
         if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
 
 #ifdef SDL_VIDEO_DRIVER_X11
@@ -1267,10 +1285,12 @@ int main(int argc, char **argv)
     SDL_StopTextInput(); // workaround for spurious text-input events getting sent on first text input toggle?
 
     logoutf("init: gl");
-    gl_checkextensions();
-    gl_init();
+    if(!headless) {
+        gl_checkextensions();
+        gl_init();
+    }
     notexture = textureload("packages/textures/notexture.png");
-    if(!notexture) fatal("could not find core textures");
+    if(!notexture && !headless) fatal("could not find core textures");
 
     logoutf("init: console");
     if(!execfile("data/stdlib.cfg", false)) fatal("cannot find data files (you are running from the wrong folder, try .bat file in the main folder)");   // this is the first file we load.
@@ -1377,7 +1397,7 @@ int main(int argc, char **argv)
         updateparticles();
         updatesounds();
 
-        if(minimized) continue;
+        if(minimized || headless) continue;
 
         inbetweenframes = false;
         if(mainmenu) gl_drawmainmenu();

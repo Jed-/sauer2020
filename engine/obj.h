@@ -112,7 +112,7 @@ struct obj : vertloader<obj>
                         for(;;)
                         {
                             while(isspace(*c)) c++;
-                            if(!*c) break; 
+                            if(!*c) break;
                             ivec vkey(-1, -1, -1);
                             loopi(3)
                             {
@@ -182,10 +182,9 @@ struct obj : vertloader<obj>
         Texture *tex, *masks;
         loadskin(name, pname, tex, masks);
         mdl.initskins(tex, masks);
-        if(tex==notexture) conoutf(CON_ERROR, "could not load model skin for %s", name1);
+        if(tex==notexture && !headless) conoutf(CON_ERROR, "could not load model skin for %s", name1);
         return true;
     }
 };
 
 vertcommands<obj> objcommands;
-
