@@ -666,3 +666,21 @@ int extservclientprivilege(int i, int cn) {
 	return 0;
 }
 ICOMMAND(extservclientprivilege, "ii", (int *i, int *cn), intret(extservclientprivilege(*i, *cn)));
+void extservclientip(int i, int cn) {
+	if(extservers.inrange(i) && extservers[i]) {
+		extserver *es = extservers[i];
+		loopvj(es->extclients) {
+			extclient *ec = es->extclients[j];
+			if(ec && ec->clientnum==cn) {
+				defformatstring(ret, "%d.%d.%d.%d", ec->ip % 256, (ec->ip / 256) % 256, (ec->ip / 256 / 256) % 256, (ec->ip / 256 / 256 / 256));
+				result(ret);
+				return;
+			}
+		}
+		result("0.0.0.0");
+		return;
+	}
+	result("0.0.0.0");
+	return;
+}
+ICOMMAND(extservclientip, "ii", (int *i, int *cn), extservclientip(*i, *cn));
