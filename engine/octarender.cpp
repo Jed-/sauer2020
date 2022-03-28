@@ -92,7 +92,6 @@ bool readva(vtxarray *va, ushort *&edata, vertex *&vdata)
 
 void flushvbo(int type = -1)
 {
-    if(headless) return;
     if(type < 0)
     {
         loopi(NUMVBO) flushvbo(i);
@@ -102,7 +101,7 @@ void flushvbo(int type = -1)
     vector<uchar> &data = vbodata[type];
     if(data.empty()) return;
     vector<vtxarray *> &vas = vbovas[type];
-    genvbo(type, data.getbuf(), data.length(), vas.getbuf(), vas.length());
+    if(!headless) genvbo(type, data.getbuf(), data.length(), vas.getbuf(), vas.length());
     data.setsize(0);
     vas.setsize(0);
     vbosize[type] = 0;
@@ -393,7 +392,7 @@ struct vacollect : verthash
 
     void genverts(void *buf)
     {
-        GENVERTS(vertex, buf, { *f = v; f->norm.flip(); f->tangent.flip(); });
+        if(!headless) GENVERTS(vertex, buf, { *f = v; f->norm.flip(); f->tangent.flip(); });
     }
 
     void setupdata(vtxarray *va)
