@@ -2118,6 +2118,7 @@ namespace game
 
             case N_SERVCMD:
                 getstring(text, p);
+                conoutf("\f8:: received N_SERVCMD:\f7 %s", text);
                 break;
 
             default:
