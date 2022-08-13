@@ -691,7 +691,7 @@ void rendermaterials()
 
                         bvec wfcol = getwaterfallcolor(m.material);
                         if(wfcol.iszero()) wfcol = getwatercolor(m.material);
-                        gle::color(wfcol, 192);
+                        if(!headless) gle::color(wfcol, 192);
 
                         int wfog = getwaterfog(m.material);
                         if(!wfog && !waterfallenv)
@@ -794,7 +794,7 @@ void rendermaterials()
                         extern int glare;
                         if(glare) t = 0.625f + 0.075f*t;
                         else t = 0.5f + 0.5f*t;
-                        gle::colorf(t, t, t);
+                        if(!headless) gle::colorf(t, t, t);
                         if(glaring) SETSHADER(lavaglare); else SETSHADER(lava);
                         fogtype = 1;
                     }
@@ -828,13 +828,13 @@ void rendermaterials()
                         if(m.envmap!=EMID_NONE && glassenv)
                         {
                             glBlendFunc(GL_ONE, GL_SRC_ALPHA);
-                            gle::color(gcol);
+                            if(!headless) gle::color(gcol);
                             SETSHADER(glass);
                         }
                         else
                         {
                             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                            gle::color(gcol, 40);
+                            if(!headless) gle::color(gcol, 40);
                             foggednotextureshader->set();
                             fogtype = 1;
                         }

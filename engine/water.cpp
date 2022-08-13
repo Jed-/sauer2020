@@ -231,7 +231,7 @@ void setuplava(Texture *tex, float scale)
     float yk = TEX_SCALE/(tex->ys*scale);
     float scroll = lastmillis/1000.0f;
     LOCALPARAMF(lavatexgen, xk, yk, scroll, scroll);
-    gle::normal(vec(0, 0, 1));
+    if(!headless) gle::normal(vec(0, 0, 1));
     whoffset = fmod(float(lastmillis/2000.0f/(2*M_PI)), 1.0f);
     whphase = vertwphase(whoffset);
 }
@@ -470,7 +470,7 @@ void renderwater()
         whoffset = fmod(float(lastmillis/600.0f/(2*M_PI)), 1.0f);
         whphase = vertwphase(whoffset);
 
-        gle::color(getwatercolor(ref.material));
+        if(!headless) gle::color(getwatercolor(ref.material));
         int wfog = getwaterfog(ref.material), wspec = getwaterspec(ref.material);
 
         const entity *lastlight = (const entity *)-1;
@@ -638,7 +638,7 @@ void addwaterfallrefraction(materialsurface &m)
     }
     ref.matsurfs.add(&m);
 
-    if(!ref.refracttex) genwatertex(ref.refracttex, reflectionfb, reflectiondb);
+    if(!headless && !ref.refracttex) genwatertex(ref.refracttex, reflectionfb, reflectiondb);
 }
 
 void addreflection(materialsurface &m)

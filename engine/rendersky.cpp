@@ -599,6 +599,7 @@ static int yawskyfaces(int faces, int yaw, float spin = 0)
 
 void drawskybox(int farplane, bool limited, bool force)
 {
+    if(headless) return;
     extern int renderedskyfaces, renderedskyclip; // , renderedsky, renderedexplicitsky;
     bool alwaysrender = editmode || !insideworld(camera1->o) || reflecting || force,
          explicitonly = false;

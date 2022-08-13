@@ -273,6 +273,7 @@ struct vertmodel : animmodel
 
         void genvbo(bool tangents, vbocacheentry &vc)
         {
+            if(headless) return;
             if(!vc.vbuf) glGenBuffers_(1, &vc.vbuf);
             if(ebuf) return;
                 
@@ -324,6 +325,7 @@ struct vertmodel : animmodel
 
         void bindvbo(const animstate *as, vbocacheentry &vc)
         {
+            if(headless) return;
             vvert *vverts = 0;
             bindpos(ebuf, vc.vbuf, &vverts->pos, vertsize);
             if(as->cur.anim&ANIM_NOSKIN)
@@ -394,7 +396,7 @@ struct vertmodel : animmodel
                 if(!vc) loopi(MAXVBOCACHE) { vc = &vbocache[i]; if(!vc->vbuf || vc->millis < lastmillis) break; }
             }
             if(!vc->vbuf) genvbo(tangents, *vc);
-            if(numframes>1)
+            if(!headless && numframes>1)
             {
                 if(vc->as!=*as)
                 {
@@ -412,7 +414,7 @@ struct vertmodel : animmodel
             }
         
             bindvbo(as, *vc);
-            loopv(meshes)
+            if(!headless) loopv(meshes)
             {
                 vertmesh *m = (vertmesh *)meshes[i];
                 p->skins[i].bind(m, as);

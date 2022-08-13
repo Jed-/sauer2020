@@ -1013,6 +1013,7 @@ static void mergetexs(renderstate &cur, vtxarray *va, elementset *texs = NULL, i
 
 static inline void enablevattribs(renderstate &cur, bool all = true)
 {
+    if(headless) return;
     gle::enablevertex();
     if(all)
     {
@@ -1026,6 +1027,7 @@ static inline void enablevattribs(renderstate &cur, bool all = true)
 
 static inline void disablevattribs(renderstate &cur, bool all = true)
 {
+    if(headless) return;
     gle::disablevertex();
     if(all)
     {
@@ -1068,7 +1070,7 @@ static void changebatchtmus(renderstate &cur, int pass, geombatch &b)
         changed = true;
     }
     int tmu = 2;
-    if(b.vslot.slot->shader->type&SHADER_NORMALSLMS)
+    if(!headless && b.vslot.slot->shader->type&SHADER_NORMALSLMS)
     {
         if(cur.textures[tmu]!=lightmaptexs[lmid+1].id)
         {
@@ -1078,7 +1080,7 @@ static void changebatchtmus(renderstate &cur, int pass, geombatch &b)
         }
         tmu++;
     }
-    if(b.vslot.slot->shader->type&SHADER_ENVMAP && b.es.envmap!=EMID_CUSTOM)
+    if(!headless && b.vslot.slot->shader->type&SHADER_ENVMAP && b.es.envmap!=EMID_CUSTOM)
     {
         GLuint emtex = lookupenvmap(b.es.envmap);
         if(cur.textures[tmu]!=emtex)
@@ -1177,6 +1179,7 @@ static void changeshader(renderstate &cur, Shader *s, Slot &slot, VSlot &vslot, 
 
 static void changetexgen(renderstate &cur, int dim, Slot &slot, VSlot &vslot)
 {
+    if(headless) return;
     if(cur.texgenslot != &slot || cur.texgenvslot != &vslot)
     {
         Texture *curtex = !cur.texgenslot || cur.texgenslot->sts.empty() ? notexture : cur.texgenslot->sts[0].t,
@@ -1281,7 +1284,7 @@ static void renderbatches(renderstate &cur, int pass)
         curbatch = b.next;
 
         if(cur.vbuf != b.va->vbuf) changevbuf(cur, pass, b.va);
-        if(cur.vslot != &b.vslot) 
+        if(!headless && cur.vslot != &b.vslot) 
         {
             changeslottmus(cur, pass, *b.vslot.slot, b.vslot);
             if(cur.texgendim != b.es.dim || (cur.texgendim <= 2 && cur.texgenvslot != &b.vslot)) changetexgen(cur, b.es.dim, *b.vslot.slot, b.vslot);

@@ -1172,6 +1172,7 @@ struct skelmodel : animmodel
 
         void genvbo(bool tangents, vbocacheentry &vc)
         {
+            if(headless) return;
             if(!vc.vbuf) glGenBuffers_(1, &vc.vbuf);
             if(ebuf) return;
 
@@ -1433,6 +1434,7 @@ struct skelmodel : animmodel
 
         void render(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p)
         {
+            if(headless) return;
             bool tangents = false;
             loopv(p->skins) if(p->skins[i].tangents()) tangents = true;
             if(skel->shouldcleanup()) { skel->cleanup(); disablevbo(); }
