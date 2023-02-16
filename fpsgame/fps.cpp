@@ -628,6 +628,7 @@ namespace game
             d->lifesequence = -1;
             d->respawned = d->suicided = -2;
 			d->hasflag = false;
+            d->flagteam[0] = 0;
         }
 
         setclientmode();

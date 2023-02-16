@@ -307,22 +307,17 @@ namespace game
 			} else if(m_ctf) {
 				g.pushlist();
 				g.text("", 0x000000);
-				loopscoregroup(o, {
-					char *icon = NULL;
-					if(m_ctf_only) {
-						icon = isteam(o->team, player1->team) ? (char *)"../hud/blip_red_flag.png" : (char *)"../hud/blip_blue_flag.png";
-					} else if(m_protect) {
-						icon = isteam(o->team, player1->team) ? (char *)"..hud/blip_blue_flag.png" : (char *)"../hud/blip_red_flag.png";
-					} else { // m_hold
-						icon = (char *)"../hud/blip_neutral_flag.png";
-					}
-
-					if(icon && o->hasflag) {
-						g.text("", 0x000000, icon);
-					} else {
-						g.text("", 0x000000);
-					}
-				})
+                loopscoregroup(o, {
+                    char *icon = (char *)"../hud/blip_neutral_flag.png";
+                    if(!m_hold) {
+                        icon = isteam(o->flagteam, player1->team) ? (char *)"../hud/blip_blue_flag.png" : (char *)"../hud/blip_red_flag.png";
+                    }
+                    if(o->hasflag) {
+                        g.text("", 0x000000, icon);
+                    } else {
+                        g.text("", 0x000000);
+                    }
+                });
 				g.poplist();
 			}
 

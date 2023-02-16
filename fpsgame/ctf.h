@@ -898,10 +898,12 @@ struct ctfclientmode : clientmode
 	void checkflag() {
 		loopv(players) {
 			players[i]->hasflag = false;
+            players[i]->flagteam[0] = 0;
 		}
 		loopv(flags) {
 			if(flags[i].owner) {
 				flags[i].owner->hasflag = true;
+                copystring(flags[i].owner->flagteam, ctfflagteam(flags[i].team));
 			}
 		}
 	}
