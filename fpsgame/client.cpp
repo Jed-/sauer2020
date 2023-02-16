@@ -418,7 +418,7 @@ namespace game
 			ucharbuf p(data, len);
 			extclient *extpdata = NULL;
 			if(getint(p) == 0 && getint(p) == EXT_PLAYERSTATS) {
-				char strdata[MAXTRANS];
+				string strdata;
 				getint(p);
 				if(getint(p) == EXT_ACK && getint(p) == EXT_VERSION) {
 					int err = getint(p);
@@ -431,9 +431,9 @@ namespace game
 							}
 							extpdata->ping = getint(p);
 							getstring(strdata, p);
-							strncpy(extpdata->name, strdata, MAXNAMELEN+1);
+							copystring(extpdata->name, strdata, MAXNAMELEN+1);
 							getstring(strdata, p);
-							strncpy(extpdata->team, strdata, MAXTEAMLEN+1);
+							copystring(extpdata->team, strdata, MAXTEAMLEN+1);
 							extpdata->frags = getint(p);
 							extpdata->flags = getint(p);
 							extpdata->deaths = getint(p);
