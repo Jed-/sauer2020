@@ -1228,6 +1228,7 @@ namespace game
             if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
             d->lastupdate = totalmillis;
         }
+        onmove(d);
     }
 
     void parsepositions(ucharbuf &p)

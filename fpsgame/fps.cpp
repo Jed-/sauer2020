@@ -80,6 +80,19 @@ namespace game
         clearbouncers();
     }
 
+    VAR(reportwater, 0, 0, 1);
+
+    void onmove(fpsent *d) {
+        if(!reportwater || !d) return;
+        int material = lookupmaterial(vec(d->o.x, d->o.y, d->o.z + (3*d->aboveeye - d->eyeheight)/4));
+        int water = isliquid(material&MATF_VOLUME) ? 1 : 0;
+        if(water != d->water) {
+            d->water = water;
+            defformatstring(msg, "water %d %d", water, d->clientnum);
+            addmsg(N_SERVCMD, "rs", msg);
+        }
+    }
+
     fpsent *spawnstate(fpsent *d)              // reset player state not persistent accross spawns
     {
         d->respawn();
@@ -268,6 +281,7 @@ namespace game
             {
                 if(player1->ragdoll) cleanragdoll(player1);
                 moveplayer(player1, 10, true);
+                onmove(player1);
                 swayhudgun(curtime);
                 entities::checkitems(player1);
                 if(m_sp)

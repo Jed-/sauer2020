@@ -275,6 +275,16 @@ namespace entities
                 entinmap(d);
                 updatedynentcache(d);
                 ai::inferwaypoints(d, ents[n]->o, ents[e]->o, 16.f);
+
+                if(game::reportwater) {
+                    int material = lookupmaterial(vec(d->o.x, d->o.y, d->o.z + (3*d->aboveeye - d->eyeheight)/4));
+                    int water = isliquid(material&MATF_VOLUME) ? 1 : 0;
+                    if(water != d->water) {
+                        d->water = water;
+                        defformatstring(msg, "water %d %d", water, d->clientnum);
+                        addmsg(N_SERVCMD, "rs", msg);
+                    }
+                }
                 break;
             }
         }

@@ -563,8 +563,9 @@ struct fpsent : dynent, fpsstate
 	bool hasflag;
     string flagteam;
     int laststealflag;
+    int water;
 
-    fpsent() : weight(100), clientnum(-1), privilege(PRIV_NONE), lastupdate(0), plag(0), ping(0), lifesequence(0), respawned(-1), suicided(-1), lastpain(0), attacksound(-1), attackchan(-1), idlesound(-1), idlechan(-1), frags(0), flags(0), deaths(0), totaldamage(0), totalshots(0), edit(NULL), smoothmillis(-1), playermodel(-1), ai(NULL), ownernum(-1), muzzle(-1, -1, -1), hasflag(false), laststealflag(0)
+    fpsent() : weight(100), clientnum(-1), privilege(PRIV_NONE), lastupdate(0), plag(0), ping(0), lifesequence(0), respawned(-1), suicided(-1), lastpain(0), attacksound(-1), attackchan(-1), idlesound(-1), idlechan(-1), frags(0), flags(0), deaths(0), totaldamage(0), totalshots(0), edit(NULL), smoothmillis(-1), playermodel(-1), ai(NULL), ownernum(-1), muzzle(-1, -1, -1), hasflag(false), laststealflag(0), water(0)
     {
         name[0] = team[0] = info[0] = flagteam[0] = 0;
         respawn();
@@ -614,6 +615,7 @@ struct fpsent : dynent, fpsstate
         stopattacksound();
         lastnode = -1;
         laststealflag = 0;
+        water = 0;
     }
 
     int respawnwait(int secs, int delay = 0)
@@ -733,6 +735,7 @@ namespace game
 
     extern clientmode *cmode;
     extern void setclientmode();
+    extern void onmove(fpsent *d);
 
     // fps
     extern int gamemode, nextmode;
@@ -746,6 +749,7 @@ namespace game
     extern int respawnent;
     extern int following;
     extern int smoothmove, smoothdist;
+    extern int reportwater;
 
     extern bool clientoption(const char *arg);
     extern fpsent *getclient(int cn);
